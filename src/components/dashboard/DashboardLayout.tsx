@@ -14,7 +14,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { t, isRTL } = useLanguage();
     const location = useLocation();
     const navigate = useNavigate();
-    const { signOut } = useAuth();
+    const { signOut, role } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -23,7 +23,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         navigate('/login');
     };
 
-    const navItems = [
+    const allNavItems = [
         { path: '/dashboard', icon: LayoutDashboard, label: 'Aperçu' },
         { path: '/dashboard/leads', icon: Users, label: 'Prospects' },
         { path: '/dashboard/projects', icon: FolderOpen, label: 'Portfolio' },
@@ -34,6 +34,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { path: '/dashboard/team', icon: Shield, label: 'Équipe' },
         { path: '/dashboard/settings', icon: Settings, label: 'Paramètres' },
     ];
+
+    const navItems = role === 'editor' 
+        ? allNavItems.filter(item => ['/dashboard', '/dashboard/leads', '/dashboard/blog'].includes(item.path))
+        : allNavItems;
 
     const isActive = (path: string) => location.pathname === path;
 

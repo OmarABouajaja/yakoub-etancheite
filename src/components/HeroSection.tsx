@@ -44,9 +44,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuoteClick }) => {
       {/* Graffiti Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-background pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-[hsl(var(--steel-blue))] opacity-[0.10] blur-[100px] rounded-full" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[hsl(var(--cyan-bright))] opacity-[0.10] blur-[80px] rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[hsl(var(--water-blue))] opacity-[0.07] blur-[60px] rounded-full" />
+        <div className="absolute top-20 left-10 w-96 h-96 opacity-20 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--steel-blue)) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-20 right-10 w-80 h-80 opacity-20 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--cyan-bright)) 0%, transparent 70%)' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 opacity-10 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--water-blue)) 0%, transparent 70%)' }} />
       </div>
 
       {/* Content */}

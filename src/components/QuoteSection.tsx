@@ -62,8 +62,8 @@ const QuoteSection: React.FC<QuoteSectionProps> = ({ isModal = false, onClose })
   return (
     <section id="quote" className="py-24 relative spray-texture">
       {/* Background accents */}
-      <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-[hsl(var(--steel-blue))] opacity-[0.07] blur-[100px] rounded-full" />
-      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[hsl(var(--cyan-bright))] opacity-[0.07] blur-[100px] rounded-full" />
+      <div className="absolute top-1/3 left-1/4 w-80 h-80 opacity-10 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--steel-blue)) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 opacity-10 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--cyan-bright)) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-2xl mx-auto">

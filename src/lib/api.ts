@@ -80,6 +80,38 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
     throw new Error(error.message || 'Échec de l\'envoi. Veuillez réessayer.');
   }
 
+  // Attempt to send email notification
+  try {
+    const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
+    if (resendApiKey) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${resendApiKey}`
+        },
+        body: JSON.stringify({
+          from: 'Yakoub Etancheite TEAM <team@yakoub-etancheite.com.tn>',
+          to: 'team@yakoub-etancheite.com.tn',
+          subject: `Nouveau Prospect: ${data.client_name} - ${data.problem_type}`,
+          html: `
+            <h2>Nouveau prospect reçu sur Yakoub-Etancheite</h2>
+            <p><strong>Nom:</strong> ${data.client_name}</p>
+            <p><strong>Téléphone:</strong> ${data.phone}</p>
+            <p><strong>Problème:</strong> ${data.problem_type}</p>
+            <p><strong>Surface:</strong> ${data.surface_area || 'Non spécifiée'} m²</p>
+            <p><strong>Urgent:</strong> ${data.is_urgent ? 'Oui' : 'Non'}</p>
+            <p><strong>Message/Lieu:</strong><br/>${data.message || 'Aucun message'}</p>
+          `
+        })
+      });
+    } else {
+      console.warn("VITE_RESEND_API_KEY is not set. Email not sent.");
+    }
+  } catch (emailError) {
+    console.error("Failed to send email notification:", emailError);
+  }
+
   return { id: result.id, message: 'Lead submitted successfully' };
 }
 

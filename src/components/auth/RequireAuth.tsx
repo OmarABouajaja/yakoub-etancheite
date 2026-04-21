@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, loading } = useAuth();
+    const { user, role, loading } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -17,6 +17,14 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    // Role-based access control
+    if (role === 'editor') {
+        const restrictedPaths = ['/dashboard/finance', '/dashboard/team', '/dashboard/settings', '/dashboard/projects', '/dashboard/partners', '/dashboard/testimonials'];
+        if (restrictedPaths.some(path => location.pathname.startsWith(path))) {
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return <>{children}</>;

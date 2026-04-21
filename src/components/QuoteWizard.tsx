@@ -132,35 +132,16 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onClose }) => {
 
       setIsSuccess(true);
 
-      // Fire confetti
+      // Fire confetti (Optimized for mobile performance)
       const colors = ['#4A9FD4', '#29ABE2', '#0A1628', '#FFFFFF'];
 
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 80,
+        spread: 100,
         origin: { y: 0.6 },
         colors,
+        disableForReducedMotion: true,
       });
-
-      setTimeout(() => {
-        confetti({
-          particleCount: 50,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors,
-        });
-      }, 200);
-
-      setTimeout(() => {
-        confetti({
-          particleCount: 50,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors,
-        });
-      }, 400);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : 'Submission failed. Please try again.'
