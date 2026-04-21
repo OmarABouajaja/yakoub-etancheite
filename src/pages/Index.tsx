@@ -1,12 +1,12 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import Footer from '@/components/Footer';
 import StickyWhatsApp from '@/components/StickyWhatsApp';
 import { AnimatePresence } from 'framer-motion';
-import { checkHealth } from '@/lib/api';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import SEO from '@/components/SEO';
 
 // Lazy loading heavy below-the-fold components for extreme Performance
 const ServicesSection = lazy(() => import('@/components/ServicesSection'));
@@ -20,16 +20,6 @@ const Index = () => {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const { settings } = useSiteSettings();
 
-  // Pre-warm the backend on page load (Antigravity Protocol)
-  // This silently pings the API so the Render backend wakes up
-  // before the user reaches the quote form
-  useEffect(() => {
-    checkHealth().catch(() => {
-      // Silent fail - we don't want to show errors for pre-warming
-      console.log('[Antigravity] Pre-warming backend...');
-    });
-  }, []);
-
   const handleOpenQuote = () => {
     setIsQuoteModalOpen(true);
   };
@@ -41,6 +31,10 @@ const Index = () => {
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-background">
+        <SEO 
+          title="Accueil" 
+          description="Yakoub Travaux — Experts en étanchéité depuis 15 ans en Tunisie. Toitures, terrasses, façades. Devis gratuit et garantie." 
+        />
         {/* Sticky Navbar */}
         <Navbar onQuoteClick={handleOpenQuote} />
 

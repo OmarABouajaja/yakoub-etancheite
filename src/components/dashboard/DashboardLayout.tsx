@@ -125,9 +125,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         initial={{ opacity: 0, x: -100 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -100 }}
-                        className="md:hidden fixed inset-0 top-16 z-40 bg-card/95 backdrop-blur-xl"
+                        className="md:hidden fixed inset-0 top-16 z-40 bg-card/95 backdrop-blur-xl flex flex-col"
                     >
-                        <nav className="p-4 space-y-2">
+                        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
                             {navItems.map(({ path, icon: Icon, label }) => (
                                 <Link
                                     key={path}
@@ -143,6 +143,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 </Link>
                             ))}
                         </nav>
+                        <div className="p-4 border-t border-border">
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                                className="flex items-center gap-3 px-4 py-4 rounded-md text-destructive hover:bg-destructive/10 transition-colors w-full"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                <span className="font-medium">Déconnexion</span>
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

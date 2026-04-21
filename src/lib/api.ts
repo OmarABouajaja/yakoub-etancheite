@@ -11,6 +11,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { compressImageForStorage } from './image-utils';
+import { getLeadNotificationHtml } from './email-templates';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -82,31 +83,26 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
 
   // Attempt to send email notification
   try {
-    const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
-    if (resendApiKey) {
-      await fetch('https://api.resend.com/emails', {
+    const { data: settings } = await supabase.from('site_settings').select('email, enable_email_notifications').single();
+    
+    // Default to true if not explicitly set to false
+    if (settings?.enable_email_notifications !== false) {
+      const dashboardUrl = typeof window !== 'undefined' ? window.location.origin : 'https://yakoub-etancheite.com.tn';
+      const emailHtml = getLeadNotificationHtml(data, dashboardUrl);
+      
+      const toEmail = settings?.email || 'team@yakoub-etancheite.com.tn';
+
+      await fetch('/api/send-email', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${resendApiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'Yakoub Etancheite TEAM <team@yakoub-etancheite.com.tn>',
-          to: 'team@yakoub-etancheite.com.tn',
-          subject: `Nouveau Prospect: ${data.client_name} - ${data.problem_type}`,
-          html: `
-            <h2>Nouveau prospect reçu sur Yakoub-Etancheite</h2>
-            <p><strong>Nom:</strong> ${data.client_name}</p>
-            <p><strong>Téléphone:</strong> ${data.phone}</p>
-            <p><strong>Problème:</strong> ${data.problem_type}</p>
-            <p><strong>Surface:</strong> ${data.surface_area || 'Non spécifiée'} m²</p>
-            <p><strong>Urgent:</strong> ${data.is_urgent ? 'Oui' : 'Non'}</p>
-            <p><strong>Message/Lieu:</strong><br/>${data.message || 'Aucun message'}</p>
-          `
+          to: toEmail,
+          subject: `${data.is_urgent ? '⚡ URGENT' : '📋 Nouveau'} Prospect: ${data.client_name} — ${data.problem_type}`,
+          html: emailHtml
         })
       });
-    } else {
-      console.warn("VITE_RESEND_API_KEY is not set. Email not sent.");
     }
   } catch (emailError) {
     console.error("Failed to send email notification:", emailError);

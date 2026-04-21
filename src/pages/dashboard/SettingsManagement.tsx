@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/lib/supabase';
-import { Save, Loader2, Phone, Mail, MapPin, Share2, BarChart2 } from 'lucide-react';
+import { Save, Loader2, Phone, Mail, MapPin, Share2, BarChart2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 interface SiteSettings {
   phone_primary: string;
@@ -16,6 +17,7 @@ interface SiteSettings {
   stat_experience: string;
   stat_guarantee: string;
   stat_satisfaction: string;
+  enable_email_notifications?: boolean;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -30,6 +32,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   stat_experience: '15',
   stat_guarantee: '10',
   stat_satisfaction: '98%',
+  enable_email_notifications: true,
 };
 
 const SettingsManagement = () => {
@@ -264,6 +267,25 @@ const SettingsManagement = () => {
                                     />
                                     <p className="text-xs text-muted-foreground text-center">ex: 98%</p>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Section 4: Notifications */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+                                <Bell className="w-5 h-5 text-green-500" />
+                                <h3 className="font-bold text-lg font-display tracking-wider text-foreground">Notifications Système</h3>
+                            </div>
+                            
+                            <div className="flex items-center justify-between p-6 bg-background border border-border rounded-lg">
+                                <div className="space-y-1">
+                                    <h4 className="font-bold text-foreground">Alertes Nouveau Prospect</h4>
+                                    <p className="text-sm text-muted-foreground">Recevoir un email détaillé lorsqu'un client soumet une demande de devis.</p>
+                                </div>
+                                <Switch 
+                                    checked={settings.enable_email_notifications !== false}
+                                    onCheckedChange={(checked) => setSettings(prev => ({...prev, enable_email_notifications: checked}))}
+                                />
                             </div>
                         </div>
                     </div>

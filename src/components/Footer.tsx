@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
   return (
     <footer id="contact" className="bg-card border-t-2 border-primary/30 spray-texture relative">
       {/* Background accent */}
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-[hsl(var(--orange))] opacity-5 blur-[150px] rounded-full" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 opacity-10 rounded-full" style={{ background: 'radial-gradient(circle, hsl(var(--orange)) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
