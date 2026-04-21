@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         try {
             const result = await Promise.race([
-                supabase.from('team_members').select('role').eq('email', email).single(),
+                supabase.from('team_members').select('role').eq('email', email).limit(1).maybeSingle(),
                 new Promise<never>((_, reject) =>
                     setTimeout(() => reject(new Error('timeout')), 5000)
                 )
