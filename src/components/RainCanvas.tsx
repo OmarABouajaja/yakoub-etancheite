@@ -17,7 +17,6 @@ interface Particle {
 const RainCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const mouseRef = useRef({ x: -1000, y: -1000 });
   const animationRef = useRef<number>();
   const lastFrameRef = useRef<number>(0);
 
@@ -74,32 +73,15 @@ const RainCanvas: React.FC = () => {
       canvas.style.height = `${window.innerHeight}px`;
       ctx.scale(dpr, dpr);
 
-      // More particles — visible density
-      const baseCount = Math.floor((window.innerWidth * window.innerHeight) / 6000);
-      const maxCount  = isMobile ? 80 : 180;
+      // Create stable background ambiance, limiting count for mobile phones
+      const baseCount = Math.floor((window.innerWidth * window.innerHeight) / 7000);
+      const maxCount  = isMobile ? 60 : 150;
       initParticles(window.innerWidth, window.innerHeight, Math.min(baseCount, maxCount));
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-    const handleMouseLeave = () => {
-      mouseRef.current = { x: -1000, y: -1000 };
-    };
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        mouseRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
 
-    const repulsionRadius   = isMobile ? 120 : 150;
-    const repulsionStrength = 10;
     const targetFPS         = isMobile ? 30 : 60;
     const frameInterval     = 1000 / targetFPS;
 
@@ -119,17 +101,6 @@ const RainCanvas: React.FC = () => {
       ctx.lineCap = 'round';
 
       particlesRef.current.forEach((particle) => {
-        // Mouse repulsion
-        const dx = particle.x - mouseRef.current.x;
-        const dy = particle.y - mouseRef.current.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < repulsionRadius && distance > 0) {
-          const force = (repulsionRadius - distance) / repulsionRadius;
-          const angle = Math.atan2(dy, dx);
-          particle.vx += Math.cos(angle) * force * repulsionStrength;
-          particle.vy += Math.sin(angle) * force * repulsionStrength * 0.3;
-        }
 
         particle.vx *= 0.90;
         particle.vy *= 0.90;
@@ -174,22 +145,6 @@ const RainCanvas: React.FC = () => {
         }
       });
 
-      // Cursor repulsion glow — brand steel-blue tint
-      if (mouseRef.current.x > 0 && mouseRef.current.y > 0) {
-        const grad = ctx.createRadialGradient(
-          mouseRef.current.x, mouseRef.current.y, 0,
-          mouseRef.current.x, mouseRef.current.y, repulsionRadius
-        );
-        grad.addColorStop(0,   'hsla(204, 62%, 53%, 0.12)');
-        grad.addColorStop(0.5, 'hsla(197, 85%, 48%, 0.06)');
-        grad.addColorStop(1,   'rgba(0, 0, 0, 0)');
-
-        ctx.beginPath();
-        ctx.fillStyle = grad;
-        ctx.arc(mouseRef.current.x, mouseRef.current.y, repulsionRadius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -197,9 +152,6 @@ const RainCanvas: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      canvas.removeEventListener('touchmove', handleTouchMove);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [initParticles, isMobile]);

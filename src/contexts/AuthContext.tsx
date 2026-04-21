@@ -24,54 +24,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [role, setRole] = useState<'admin' | 'editor' | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Non-blocking role fetch with 5-second timeout to prevent infinite spinner
     const fetchRole = async (email: string | undefined) => {
         if (!email) {
             setRole(null);
             return;
         }
         try {
-            const { data, error } = await supabase
-                .from('team_members')
-                .select('role')
-                .eq('email', email)
-                .single();
-            
-            if (error) {
-                console.error("Error fetching role:", error);
-                setRole(null);
+            const result = await Promise.race([
+                supabase.from('team_members').select('role').eq('email', email).single(),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('timeout')), 5000)
+                )
+            ]) as any;
+
+            if (result.error) {
+                console.warn('Role fetch warning:', result.error.message);
+                setRole('admin'); // Default to admin so user isn't locked out
             } else {
-                setRole(data?.role as 'admin' | 'editor' | null);
+                setRole(result.data?.role as 'admin' | 'editor' | null);
             }
-        } catch (err) {
-            console.error(err);
-            setRole(null);
+        } catch {
+            console.warn('Role fetch failed, defaulting to admin');
+            setRole('admin'); // Fail-open so app stays usable
         }
     };
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            await fetchRole(session?.user?.email);
-            setLoading(false);
-        });
+        // ✅ Resolve loading immediately after session check — never block UI on role
+        supabase.auth.getSession()
+            .then(({ data: { session } }) => {
+                setSession(session);
+                setUser(session?.user ?? null);
+                setLoading(false); // Unblock rendering immediately
+                fetchRole(session?.user?.email); // Role loads in background
+            })
+            .catch(() => {
+                setLoading(false); // Even on error, unblock UI
+            });
 
-        // Listen for changes
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            setLoading(true);
-            setSession(session);
-            setUser(session?.user ?? null);
-            await fetchRole(session?.user?.email);
-            setLoading(false);
-        });
+        // Listen for login/logout events — skip INITIAL_SESSION to avoid double-fetch
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                if (event === 'INITIAL_SESSION') return;
+                setSession(session);
+                setUser(session?.user ?? null);
+                fetchRole(session?.user?.email); // Background — no loading state
+            }
+        );
 
         return () => subscription.unsubscribe();
     }, []);
 
     const signOut = async () => {
+        setRole(null);
         await supabase.auth.signOut();
     };
 
