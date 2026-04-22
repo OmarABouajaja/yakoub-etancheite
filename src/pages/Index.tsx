@@ -1,5 +1,4 @@
 import React, { useState, lazy, Suspense } from 'react';
-import { LanguageProvider } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import Footer from '@/components/Footer';
@@ -29,11 +28,11 @@ const Index = () => {
   };
 
   return (
-    <LanguageProvider>
       <div className="min-h-screen bg-background">
         <SEO 
           title="Accueil" 
           description="Yakoub Travaux — Experts en étanchéité depuis 15 ans en Tunisie. Toitures, terrasses, façades. Devis gratuit et garantie." 
+          path="/"
         />
         {/* Sticky Navbar */}
         <Navbar onQuoteClick={handleOpenQuote} />
@@ -77,7 +76,6 @@ const Index = () => {
           )}
         </AnimatePresence>
       </div>
-    </LanguageProvider>
   );
 };
 

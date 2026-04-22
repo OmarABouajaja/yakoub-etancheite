@@ -43,6 +43,7 @@ const AboutUs = () => {
           ? `شريك رسمي Derbigum في تونس. أحسن خدمات عزل وتغليف البنايات بمواد عالية الجودة وضمان. الهاتف: ${settings.phone_primary}`
           : `Partenaire officiel Derbigum en Tunisie. Étanchéité et imperméabilisation professionnelles avec garantie. Tel: ${settings.phone_primary}`
         }
+        path="/about-us"
       />
       <Navbar onQuoteClick={() => window.location.href = '/contact'} />
 

@@ -16,6 +16,7 @@ const ServicesList = () => {
         description={isAr 
           ? "خدمات عزل شاملة تشمل الأسطح، والأساسات، والحلول التجارية." 
           : "Services d'étanchéité complets incluant toitures, fondations et solutions commerciales."}
+        path="/services"
       />
       <Navbar onQuoteClick={() => window.location.href = '/contact'} />
       

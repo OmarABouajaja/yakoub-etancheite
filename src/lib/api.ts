@@ -26,6 +26,21 @@ export interface LeadData {
   message?: string;
 }
 
+export interface Lead {
+  id: string;
+  client_name: string;
+  name?: string;
+  phone: string;
+  problem_type: string;
+  surface_area: number | null;
+  is_urgent: boolean;
+  message: string | null;
+  status: 'new' | 'contacted' | 'converted' | 'lost';
+  created_at: string;
+  updated_at?: string;
+  location?: string;
+}
+
 export interface LeadResponse {
   id: string;
   message: string;
@@ -114,7 +129,7 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
 /**
  * Fetch all leads for dashboard (authenticated)
  */
-export async function getLeads(): Promise<any[]> {
+export async function getLeads(): Promise<Lead[]> {
   const { data, error } = await supabase
     .from('leads')
     .select('*')
@@ -125,7 +140,7 @@ export async function getLeads(): Promise<any[]> {
     return [];
   }
 
-  return data || [];
+  return (data as Lead[]) || [];
 }
 
 /**

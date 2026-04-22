@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
 export interface SiteSettings {
@@ -13,6 +13,7 @@ export interface SiteSettings {
   stat_experience: string;
   stat_guarantee: string;
   stat_satisfaction: string;
+  enable_email_notifications?: boolean;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -29,30 +30,34 @@ const DEFAULT_SETTINGS: SiteSettings = {
   stat_satisfaction: '98%'
 };
 
+async function fetchSiteSettings(): Promise<SiteSettings> {
+  try {
+    const { data, error } = await supabase.from('site_settings').select('*').single();
+    if (error) {
+      // Fallback to localStorage cache
+      const local = localStorage.getItem('site_settings');
+      if (local) return JSON.parse(local);
+      return DEFAULT_SETTINGS;
+    }
+    // Cache locally for offline/fallback
+    localStorage.setItem('site_settings', JSON.stringify(data));
+    return data as SiteSettings;
+  } catch {
+    const local = localStorage.getItem('site_settings');
+    if (local) return JSON.parse(local);
+    return DEFAULT_SETTINGS;
+  }
+}
+
 export const useSiteSettings = () => {
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: settings = DEFAULT_SETTINGS, isLoading, refetch } = useQuery({
+    queryKey: ['site-settings'],
+    queryFn: fetchSiteSettings,
+    staleTime: 5 * 60 * 1000, // 5 minutes — avoid re-fetch on every mount
+    gcTime: 30 * 60 * 1000,   // 30 minutes garbage collection
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase.from('site_settings').select('*').single();
-        if (error) {
-           const local = localStorage.getItem('site_settings');
-           if (local) setSettings(JSON.parse(local));
-        } else if (data) {
-           setSettings(data as SiteSettings);
-        }
-      } catch (err) {
-         const local = localStorage.getItem('site_settings');
-         if (local) setSettings(JSON.parse(local));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, []);
-
-  return { settings, isLoading };
+  return { settings, isLoading, refetch };
 };

@@ -39,10 +39,18 @@ const BlogPost = () => {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <SEO 
                 title={blog.title}
-                description={blog.excerpt}
+                description={blog.excerpt || blog.title}
                 type="article"
-                keywords={blog.meta_keywords || "étanchéité, waterproofing"}
+                keywords={blog.meta_keywords || "étanchéité, waterproofing, blog"}
                 author={blog.author_name || "Yakoub Travaux"}
+                image={blog.cover_image || undefined}
+                path={`/blog/${slug}`}
+                article={{
+                    publishedTime: blog.created_at,
+                    modifiedTime: blog.updated_at || blog.created_at,
+                    author: blog.author_name || "Yakoub Travaux",
+                    section: "Étanchéité"
+                }}
             />
             <Navbar onQuoteClick={() => window.location.href = '/contact'} />
             

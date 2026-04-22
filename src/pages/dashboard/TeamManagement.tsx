@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Edit, Trash2, Shield, User, X, Loader2, Mail, KeyRound, Send, CheckCircle } from 'lucide-react';
+import { useActiveUsers } from '@/hooks/useActiveUsers';
+import { Plus, Edit, Trash2, Shield, User, X, Loader2, Mail, KeyRound, Send, CheckCircle, Circle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface TeamMember {
   id: string;
@@ -16,6 +19,7 @@ interface TeamMember {
 
 const TeamManagement = () => {
     const { user } = useAuth();
+    const { isOnline, getActiveUser } = useActiveUsers();
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -318,6 +322,7 @@ const TeamManagement = () => {
                                         <tr>
                                             <th className="px-6 py-4 font-bold">Membre du Personnel</th>
                                             <th className="px-6 py-4 font-bold">Rôle</th>
+                                            <th className="px-6 py-4 font-bold">Dernière Activité</th>
                                             <th className="px-6 py-4 font-bold text-right">Actions Admin</th>
                                         </tr>
                                     </thead>
@@ -333,8 +338,18 @@ const TeamManagement = () => {
                                                         {isSelf(member) && (
                                                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold uppercase tracking-wider">Vous</span>
                                                         )}
+                                                        {isOnline(member.email) && (
+                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                                                                <Circle className="w-1.5 h-1.5 fill-green-500" /> En ligne
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground">{member.email}</div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {member.email}
+                                                        {isOnline(member.email) && getActiveUser(member.email) && (
+                                                            <span className="ml-2 text-[10px] text-green-500/70">• {getActiveUser(member.email)!.page === '/dashboard' ? 'Aperçu' : getActiveUser(member.email)!.page.split('/').pop()}</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 text-xs rounded-md uppercase font-bold tracking-wider ${
@@ -344,6 +359,24 @@ const TeamManagement = () => {
                                                     }`}>
                                                         {member.role}
                                                     </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {isOnline(member.email) ? (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-500">
+                                                            <Circle className="w-2 h-2 fill-green-500 animate-pulse" />
+                                                            En ligne
+                                                        </span>
+                                                    ) : getActiveUser(member.email)?.lastSeen ? (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                            <Clock className="w-3 h-3" />
+                                                            {formatDistanceToNow(new Date(getActiveUser(member.email)!.lastSeen), { addSuffix: true, locale: fr })}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                            <Clock className="w-3 h-3" />
+                                                            {formatDistanceToNow(new Date(member.created_at), { addSuffix: true, locale: fr })}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-end gap-1.5 flex-wrap">

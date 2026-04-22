@@ -1,4 +1,16 @@
+# Yakoub Travaux — Robots.txt
+# https://yakoub-etancheite.com.tn
+
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/*
+Disallow: /login
+Disallow: /update-password
+Disallow: /reset-password
+Disallow: /api/
 
-Sitemap: https://yakoub-etanche.com/sitemap.xml
+# Crawl delay (polite to Supabase)
+Crawl-delay: 1
+
+Sitemap: https://yakoub-etancheite.com.tn/sitemap.xml

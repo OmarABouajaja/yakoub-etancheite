@@ -54,20 +54,38 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       manifest: {
-        name: 'Yakoub Waterproofing Solutions',
-        short_name: 'YakoubTravaux',
-        description: 'Professional residential and commercial waterproofing services.',
-        theme_color: '#0ea5e9',
+        name: 'Yakoub Travaux — Expert Étanchéité Tunisie',
+        short_name: 'Yakoub',
+        description: 'N°1 en étanchéité en Tunisie depuis 15 ans. Toitures, terrasses, piscines, façades. Devis gratuit et garantie 10 ans.',
+        theme_color: '#0A1628',
+        background_color: '#0A1628',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '/',
+        scope: '/',
+        lang: 'fr',
+        dir: 'ltr',
+        categories: ['business', 'construction', 'services'],
         icons: [
           {
             src: 'logo.jpg',
             sizes: '192x192',
-            type: 'image/jpeg'
+            type: 'image/jpeg',
+            purpose: 'any'
           },
           {
             src: 'logo.jpg',
             sizes: '512x512',
-            type: 'image/jpeg'
+            type: 'image/jpeg',
+            purpose: 'any maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: 'og-preview.png',
+            sizes: '1200x630',
+            type: 'image/png',
+            label: 'Yakoub Travaux — Accueil'
           }
         ]
       }

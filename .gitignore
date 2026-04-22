@@ -42,3 +42,6 @@ __pycache__/
 .vite/
 .vercel/
 coverage/
+
+# Confidential docs
+CAHIER_DE_CHARGE.md

@@ -7,7 +7,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
-import UpdatePassword from "./pages/auth/UpdatePassword";
 import RequireAuth from "./components/auth/RequireAuth";
 import { Loader2 } from "lucide-react";
 
@@ -27,6 +26,7 @@ const TeamManagement = lazy(() => import("./pages/dashboard/TeamManagement"));
 const SettingsManagement = lazy(() => import("./pages/dashboard/SettingsManagement"));
 const PartnersManagement = lazy(() => import("./pages/dashboard/PartnersManagement"));
 const FinanceManagement = lazy(() => import("./pages/dashboard/FinanceManagement"));
+const UpdatePassword = lazy(() => import("./pages/auth/UpdatePassword"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">

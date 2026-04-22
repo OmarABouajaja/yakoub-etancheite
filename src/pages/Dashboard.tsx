@@ -1,12 +1,15 @@
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
-import { Users, FolderOpen, TrendingUp, Clock, ArrowRight, DollarSign } from 'lucide-react';
+import { Users, FolderOpen, TrendingUp, Clock, ArrowRight, DollarSign, Activity, PenLine, Trash2, UserPlus, Eye, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getLeads, getProjects, Project } from '@/lib/api';
+import { getLeads, getProjects, Project, Lead } from '@/lib/api';
 import { getFinancialSummary, formatTND } from '@/lib/finance-api';
+import { getActivityLog, type ActivityLogEntry } from '@/lib/activity-api';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const statusLabels: Record<string, string> = {
     new: 'Nouveau',
@@ -30,10 +33,16 @@ const Dashboard: React.FC = () => {
         queryKey: ['finance-summary'],
         queryFn: getFinancialSummary,
     });
+
+    const { data: activityLog = [] } = useQuery({
+        queryKey: ['activity-log'],
+        queryFn: () => getActivityLog(10),
+        staleTime: 30 * 1000, // 30s
+    });
     
     const isLoading = isLeadsLoading || isProjectsLoading;
 
-    const newLeads = leads.filter((l: any) => l.status === 'new').length;
+    const newLeads = leads.filter((l: Lead) => l.status === 'new').length;
     const recentLeads = leads.slice(0, 5);
 
     return (
@@ -121,7 +130,7 @@ const Dashboard: React.FC = () => {
                                         </tr>
                                     ))
                                 ) : recentLeads.length > 0 ? (
-                                    recentLeads.map((lead: any) => (
+                                    recentLeads.map((lead: Lead) => (
                                         <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap text-foreground font-medium">{lead.client_name || lead.name || '—'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-muted-foreground" dir="ltr">{lead.phone}</td>
@@ -158,6 +167,50 @@ const Dashboard: React.FC = () => {
                         </table>
                     </div>
                 </motion.div>
+
+                {/* Activity Log */}
+                {activityLog.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="glass-card overflow-hidden"
+                    >
+                        <div className="p-6 border-b border-border flex items-center gap-3">
+                            <Activity className="w-5 h-5 text-secondary" />
+                            <h2 className="text-xl font-bold font-display tracking-wider">Activité Récente</h2>
+                        </div>
+                        <div className="divide-y divide-border">
+                            {activityLog.map((entry: ActivityLogEntry) => {
+                                const actionIcons: Record<string, React.ReactNode> = {
+                                    create: <PenLine className="w-4 h-4 text-green-400" />,
+                                    update: <PenLine className="w-4 h-4 text-primary" />,
+                                    delete: <Trash2 className="w-4 h-4 text-destructive" />,
+                                    invite: <UserPlus className="w-4 h-4 text-secondary" />,
+                                    status_change: <Eye className="w-4 h-4 text-[hsl(var(--teal))]" />,
+                                    publish: <Send className="w-4 h-4 text-green-400" />,
+                                    login: <Users className="w-4 h-4 text-muted-foreground" />,
+                                };
+                                return (
+                                    <div key={entry.id} className="px-6 py-3 flex items-center gap-3 hover:bg-muted/20 transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                                            {actionIcons[entry.action] || <Activity className="w-4 h-4 text-muted-foreground" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-foreground truncate">
+                                                <span className="font-medium text-primary">{entry.user_name}</span>{' '}
+                                                {entry.details}
+                                            </p>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                            {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true, locale: fr })}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

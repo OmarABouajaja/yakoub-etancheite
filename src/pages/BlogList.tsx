@@ -25,6 +25,7 @@ const BlogList = () => {
       <SEO 
         title={isAr ? "المدونة والموارد" : "Blog & Ressources"}
         description={isAr ? "نصائح وإرشادات حول عزل المنازل والمباني للتخلص من مشاكل الرطوبة" : "Articles, actualités et études de cas sur l'étanchéité résidentielle et commerciale."}
+        path="/blog"
       />
       <Navbar onQuoteClick={() => window.location.href = '/contact'} />
       

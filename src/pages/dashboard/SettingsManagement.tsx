@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import { Save, Loader2, Phone, Mail, MapPin, Share2, BarChart2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 
 interface SiteSettings {
   phone_primary: string;
@@ -39,6 +40,20 @@ const SettingsManagement = () => {
     const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
+    const savedSettings = useRef<string>('');
+
+    // Guard against accidental navigation when form has unsaved changes
+    useUnsavedChanges(isDirty);
+
+    // Track dirty state by comparing with last saved snapshot
+    const handleChange = (updater: (prev: SiteSettings) => SiteSettings) => {
+        setSettings(prev => {
+            const next = updater(prev);
+            setIsDirty(JSON.stringify(next) !== savedSettings.current);
+            return next;
+        });
+    };
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -62,6 +77,7 @@ const SettingsManagement = () => {
                     }
                 } else if (data) {
                     setSettings(data as SiteSettings);
+                    savedSettings.current = JSON.stringify(data);
                 }
             } catch (err) {
                 console.error("Error fetching settings:", err);
@@ -92,6 +108,8 @@ const SettingsManagement = () => {
              }
              
              toast.success("Paramètres enregistrés avec succès !");
+             savedSettings.current = JSON.stringify(settings);
+             setIsDirty(false);
         } catch (err: any) {
              console.error(err);
              toast.error(err.message || "Impossible d'enregistrer les paramètres.");
@@ -135,7 +153,7 @@ const SettingsManagement = () => {
                                         type="tel" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
                                         value={settings.phone_primary}
-                                        onChange={(e) => setSettings(prev => ({...prev, phone_primary: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, phone_primary: e.target.value}))}
                                         dir="ltr"
                                     />
                                     <p className="text-xs text-muted-foreground">Apparaît dans le pied de page et la barre de navigation.</p>
@@ -146,7 +164,7 @@ const SettingsManagement = () => {
                                         type="email" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
                                         value={settings.email}
-                                        onChange={(e) => setSettings(prev => ({...prev, email: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, email: e.target.value}))}
                                     />
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
@@ -155,7 +173,7 @@ const SettingsManagement = () => {
                                         type="text" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
                                         value={settings.address}
-                                        onChange={(e) => setSettings(prev => ({...prev, address: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, address: e.target.value}))}
                                     />
                                 </div>
                             </div>
@@ -175,7 +193,7 @@ const SettingsManagement = () => {
                                         type="text" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
                                         value={settings.whatsapp_number}
-                                        onChange={(e) => setSettings(prev => ({...prev, whatsapp_number: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, whatsapp_number: e.target.value}))}
                                         dir="ltr"
                                         placeholder="e.g. 216XXXXXXXX"
                                     />
@@ -187,7 +205,7 @@ const SettingsManagement = () => {
                                         type="url" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
                                         value={settings.instagram_url}
-                                        onChange={(e) => setSettings(prev => ({...prev, instagram_url: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, instagram_url: e.target.value}))}
                                         dir="ltr"
                                     />
                                 </div>
@@ -197,7 +215,7 @@ const SettingsManagement = () => {
                                         type="url" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
                                         value={settings.facebook_url || ''}
-                                        onChange={(e) => setSettings(prev => ({...prev, facebook_url: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, facebook_url: e.target.value}))}
                                         dir="ltr"
                                     />
                                 </div>
@@ -207,7 +225,7 @@ const SettingsManagement = () => {
                                         type="url" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
                                         value={(settings as any).tiktok_url || ''}
-                                        onChange={(e) => setSettings(prev => ({...prev, tiktok_url: e.target.value} as any))}
+                                        onChange={(e) => handleChange(prev => ({...prev, tiktok_url: e.target.value} as any))}
                                         dir="ltr"
                                         placeholder="https://www.tiktok.com/@..."
                                     />
@@ -229,7 +247,7 @@ const SettingsManagement = () => {
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
                                         value={settings.stat_projects}
-                                        onChange={(e) => setSettings(prev => ({...prev, stat_projects: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, stat_projects: e.target.value}))}
                                         placeholder="500+"
                                     />
                                     <p className="text-xs text-muted-foreground text-center">ex: 500+</p>
@@ -240,7 +258,7 @@ const SettingsManagement = () => {
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
                                         value={settings.stat_experience}
-                                        onChange={(e) => setSettings(prev => ({...prev, stat_experience: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, stat_experience: e.target.value}))}
                                         placeholder="15"
                                     />
                                     <p className="text-xs text-muted-foreground text-center">ex: 15</p>
@@ -251,7 +269,7 @@ const SettingsManagement = () => {
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
                                         value={settings.stat_guarantee}
-                                        onChange={(e) => setSettings(prev => ({...prev, stat_guarantee: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, stat_guarantee: e.target.value}))}
                                         placeholder="10"
                                     />
                                     <p className="text-xs text-muted-foreground text-center">ex: 10</p>
@@ -262,7 +280,7 @@ const SettingsManagement = () => {
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
                                         value={settings.stat_satisfaction}
-                                        onChange={(e) => setSettings(prev => ({...prev, stat_satisfaction: e.target.value}))}
+                                        onChange={(e) => handleChange(prev => ({...prev, stat_satisfaction: e.target.value}))}
                                         placeholder="98%"
                                     />
                                     <p className="text-xs text-muted-foreground text-center">ex: 98%</p>
@@ -284,7 +302,7 @@ const SettingsManagement = () => {
                                 </div>
                                 <Switch 
                                     checked={settings.enable_email_notifications !== false}
-                                    onCheckedChange={(checked) => setSettings(prev => ({...prev, enable_email_notifications: checked}))}
+                                    onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_email_notifications: checked}))}
                                 />
                             </div>
                         </div>

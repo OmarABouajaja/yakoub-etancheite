@@ -16,6 +16,7 @@ const Contact = () => {
         description={isAr 
           ? "تواصل مع شركة Yakoub للحصول على استشارة أو عرض أسعار مجاني لجميع أعمال العزل." 
           : "Contactez Yakoub Travaux d'Étanchéité pour un devis gratuit ou une consultation sur vos travaux."}
+        path="/contact"
       />
       <Navbar onQuoteClick={() => window.scrollTo(0, document.body.scrollHeight)} />
       
