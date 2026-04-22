@@ -93,7 +93,12 @@ const TeamManagement = () => {
                     await fetch('/api/invite-user', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: currentMember.email, name: currentMember.name, role: currentMember.role })
+                        body: JSON.stringify({ 
+                            email: currentMember.email, 
+                            name: currentMember.name, 
+                            role: currentMember.role,
+                            redirectTo: `${window.location.origin}/update-password` 
+                        })
                     });
                 } catch {
                     // Non-critical: member was added, invitation email may not have sent
@@ -136,7 +141,7 @@ const TeamManagement = () => {
         setActionLoading(key);
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(member.email, {
-                redirectTo: `${window.location.origin}/reset-password`
+                redirectTo: `${window.location.origin}/update-password`
             });
             if (error) throw error;
             toast.success(`Email de réinitialisation envoyé à ${member.email}`);
@@ -154,7 +159,12 @@ const TeamManagement = () => {
             const res = await fetch('/api/invite-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: member.email, name: member.name, role: member.role })
+                body: JSON.stringify({ 
+                    email: member.email, 
+                    name: member.name, 
+                    role: member.role,
+                    redirectTo: `${window.location.origin}/update-password` 
+                })
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok && data.error) throw new Error(data.error);

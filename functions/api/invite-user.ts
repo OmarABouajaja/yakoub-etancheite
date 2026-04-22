@@ -5,7 +5,7 @@ export const onRequestPost = async (context: any) => {
   };
 
   try {
-    const { email, name, role } = await context.request.json() as any;
+    const { email, name, role, redirectTo } = await context.request.json() as any;
 
     if (!email) {
       throw new Error('Email is required');
@@ -18,6 +18,14 @@ export const onRequestPost = async (context: any) => {
       throw new Error('Missing Supabase configuration');
     }
 
+    const inviteBody: any = { email };
+    if (redirectTo) {
+        inviteBody.options = {
+            data: { name, role },
+            redirectTo: redirectTo
+        };
+    }
+
     // Call Supabase Admin Invite API using generic Fetch
     const inviteRes = await fetch(`${SUPABASE_URL}/auth/v1/invite`, {
         method: 'POST',
@@ -26,7 +34,7 @@ export const onRequestPost = async (context: any) => {
             'apikey': SUPABASE_SERVICE_ROLE_KEY,
             'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify(inviteBody)
     });
 
     const inviteData = await inviteRes.json() as any;

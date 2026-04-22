@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
+import UpdatePassword from "./pages/auth/UpdatePassword";
 import RequireAuth from "./components/auth/RequireAuth";
 import { Loader2 } from "lucide-react";
 
@@ -55,6 +56,8 @@ const App = () => (
               <Route path="/blog" element={<BlogList />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/reset-password" element={<UpdatePassword />} />
 
               {/* Protected Dashboard Routes */}
               <Route
