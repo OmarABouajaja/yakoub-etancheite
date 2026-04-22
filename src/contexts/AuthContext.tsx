@@ -78,7 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signOut = async () => {
         setRole(null);
-        await supabase.auth.signOut();
+        // 'local' scope: only sign out this browser, not all sessions globally
+        await supabase.auth.signOut({ scope: 'local' });
     };
 
     return (
