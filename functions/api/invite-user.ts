@@ -15,7 +15,7 @@ export const onRequestPost = async (context: any) => {
     const SUPABASE_SERVICE_ROLE_KEY = context.env.SUPABASE_SERVICE_ROLE_KEY || context.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error(`Missing Supabase configuration. Debug: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}, ENV_KEYS=${Object.keys(context.env || {}).join(',')}`);
+      throw new Error('Missing Supabase configuration');
     }
 
     // Call Supabase Admin Invite API using generic Fetch
