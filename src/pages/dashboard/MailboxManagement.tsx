@@ -61,28 +61,7 @@ const MailboxManagement = () => {
         refetchInterval: 30000
     });
 
-    useEffect(() => {
-        const channel = supabase
-            .channel('emails-realtime')
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'emails',
-            }, (payload) => {
-                queryClient.invalidateQueries({ queryKey: ['emails'] });
-                if (payload.new.direction === 'inbound') {
-                    toast.info('Nouvel email reçu', {
-                        description: payload.new.subject || 'Sans sujet',
-                        icon: <Mail className="w-5 h-5 text-primary" />
-                    });
-                }
-            })
-            .subscribe();
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [queryClient]);
 
     const sendEmailMutation = useMutation({
         mutationFn: sendAdminEmail,

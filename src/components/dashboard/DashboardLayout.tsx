@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveUsers } from '@/hooks/useActiveUsers';
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, Menu, X, FileText, Star, Shield, Award, DollarSign, Circle, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 interface DashboardLayoutProps {
@@ -21,6 +21,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { activeUsers } = useActiveUsers();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const queryClient = useQueryClient();
 
     // Fetch unread email count for sidebar badge
     const { data: unreadEmailCount = 0 } = useQuery({
@@ -37,6 +39,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         refetchInterval: 30000,
         staleTime: 15000,
     });
+
+    // Global Realtime listener for new emails
+    useEffect(() => {
+        const channel = supabase
+            .channel('global-emails-realtime')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'emails',
+            }, (payload) => {
+                // Instantly update badge and mailbox cache
+                queryClient.invalidateQueries({ queryKey: ['emails'] });
+                queryClient.invalidateQueries({ queryKey: ['unread-emails-count'] });
+                
+                // Show global toast if it's an inbound email
+                if (payload.new.direction === 'inbound') {
+                    toast.info('Nouvel email reçu', {
+                        description: payload.new.subject || 'Sans sujet',
+                        icon: <Mail className="w-5 h-5 text-primary" />
+                    });
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
 
     const pageLabels: Record<string, string> = {
         '/dashboard': 'Aperçu',
