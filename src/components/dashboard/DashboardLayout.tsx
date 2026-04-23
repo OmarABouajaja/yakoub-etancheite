@@ -143,35 +143,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     ))}
                 </nav>
 
-                {/* Active Users */}
-                {isSidebarOpen && activeUsers.length > 0 && (
-                    <div className="px-4 py-3 border-t border-border">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
-                            <Circle className="w-2 h-2 fill-green-500 text-green-500 animate-pulse" />
-                            En ligne ({activeUsers.length})
-                        </p>
-                        <div className="space-y-1.5">
-                            {activeUsers.map((u) => (
-                                <div key={u.email} className="flex items-center gap-2 text-xs">
-                                    <div className="relative flex-shrink-0">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
-                                            {getInitials(u.name)}
-                                        </div>
-                                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-card" />
-                                    </div>
-                                    <div className="truncate">
-                                        <p className={`font-medium truncate ${u.email === user?.email ? 'text-primary' : 'text-foreground'}`}>
-                                            {u.name}{u.email === user?.email ? ' (vous)' : ''}
-                                        </p>
-                                        <p className="text-muted-foreground text-[10px] truncate">
-                                            {pageLabels[u.page] || 'Navigation'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {/* User Profile + Logout */}
                 <div className="border-t border-border">
