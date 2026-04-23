@@ -140,6 +140,74 @@ export const onRequestPost = async (context: any) => {
       return new Response('Failed to save email', { status: 500 });
     }
 
+    // --- Notifications and Forwarding ---
+    try {
+      // 1. Fetch site settings
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?select=email,enable_inbound_notifications,inbound_notification_email,enable_inbound_forwarding,inbound_forward_email`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        }
+      });
+      
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        const settings = settingsData[0] || {};
+        
+        const toEmails = [];
+        
+        // Notification
+        if (settings.enable_inbound_notifications !== false) {
+          const primaryEmail = settings.inbound_notification_email || settings.email || 'team@yakoub-etancheite.com.tn';
+          toEmails.push(primaryEmail);
+        }
+        
+        // Forwarding
+        if (settings.enable_inbound_forwarding && settings.inbound_forward_email) {
+          if (!toEmails.includes(settings.inbound_forward_email)) {
+             toEmails.push(settings.inbound_forward_email);
+          }
+        }
+        
+        if (toEmails.length > 0) {
+          const resendApiKey = context.env.RESEND_API_KEY;
+          if (resendApiKey) {
+            const htmlContent = `
+              <div style="font-family: sans-serif; padding: 20px; background: #f9fafb;">
+                <h2 style="color: #111827;">Nouvel Email Reçu</h2>
+                <p><strong>De:</strong> ${fromEmail}</p>
+                <p><strong>Sujet:</strong> ${subject}</p>
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #e5e7eb;">
+                  ${htmlBody || textBody.replace(/\n/g, '<br/>')}
+                </div>
+                <hr style="margin-top: 30px; border-color: #e5e7eb;" />
+                <p style="font-size: 12px; color: #6b7280;">Ceci est un transfert automatique depuis la plateforme Yakoub Étanchéité.</p>
+              </div>
+            `;
+            
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${resendApiKey}`
+              },
+              body: JSON.stringify({
+                from: 'Yakoub Étanchéité <team@yakoub-etancheite.com.tn>',
+                to: toEmails,
+                subject: `FWD: ${subject}`,
+                html: htmlContent
+              })
+            });
+          } else {
+            console.warn('RESEND_API_KEY missing, cannot send notifications/forwarding.');
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error processing notifications/forwarding:', e);
+      // Don't fail the webhook if notifications fail
+    }
+
     return new Response('OK', { status: 200 });
   } catch (error: any) {
     console.error('Webhook error:', error);

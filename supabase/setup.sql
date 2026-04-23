@@ -164,6 +164,11 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     forward_leads_email TEXT DEFAULT '',
     enable_daily_digest BOOLEAN DEFAULT false,
     daily_digest_email TEXT DEFAULT '',
+    -- Inbound email notification settings
+    enable_inbound_notifications BOOLEAN DEFAULT true,
+    inbound_notification_email TEXT DEFAULT '',
+    enable_inbound_forwarding BOOLEAN DEFAULT false,
+    inbound_forward_email TEXT DEFAULT '',
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -175,6 +180,10 @@ ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_lead_forwarding
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS forward_leads_email TEXT DEFAULT '';
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_daily_digest BOOLEAN DEFAULT false;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS daily_digest_email TEXT DEFAULT '';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_inbound_notifications BOOLEAN DEFAULT true;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS inbound_notification_email TEXT DEFAULT '';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_inbound_forwarding BOOLEAN DEFAULT false;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS inbound_forward_email TEXT DEFAULT '';
 
 DROP TRIGGER IF EXISTS set_site_settings_updated_at ON public.site_settings;
 CREATE TRIGGER set_site_settings_updated_at

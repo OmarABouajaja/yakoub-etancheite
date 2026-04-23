@@ -24,6 +24,10 @@ interface SiteSettings {
   forward_leads_email?: string;
   enable_daily_digest?: boolean;
   daily_digest_email?: string;
+  enable_inbound_notifications?: boolean;
+  inbound_notification_email?: string;
+  enable_inbound_forwarding?: boolean;
+  inbound_forward_email?: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -44,6 +48,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
   forward_leads_email: '',
   enable_daily_digest: false,
   daily_digest_email: '',
+  enable_inbound_notifications: true,
+  inbound_notification_email: '',
+  enable_inbound_forwarding: false,
+  inbound_forward_email: '',
 };
 
 const SettingsManagement = () => {
@@ -376,6 +384,74 @@ const SettingsManagement = () => {
                                             <div className="flex items-center gap-2 text-[11px] text-blue-400 mt-1">
                                                 <ArrowRight className="w-3 h-3" />
                                                 <span>Chaque nouveau prospect sera automatiquement copié à cette adresse.</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Card 2.5: Inbound Email Notifications */}
+                                <div className={`p-5 rounded-xl border transition-all ${settings?.enable_inbound_notifications !== false ? 'bg-amber-500/5 border-amber-500/20' : 'bg-background border-border'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${settings?.enable_inbound_notifications !== false ? 'bg-amber-500/10' : 'bg-muted'}`}>
+                                                <Mail className={`w-4 h-4 ${settings?.enable_inbound_notifications !== false ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-foreground text-sm">Alertes Nouvel Email (Boîte Mail)</h4>
+                                                <p className="text-xs text-muted-foreground">Recevoir une notification lorsqu'un client envoie un email à la plateforme.</p>
+                                            </div>
+                                        </div>
+                                        <Switch 
+                                            checked={settings?.enable_inbound_notifications !== false}
+                                            onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_inbound_notifications: checked}))}
+                                        />
+                                    </div>
+                                    {settings?.enable_inbound_notifications !== false && (
+                                        <div className="ml-11 mt-3 space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Envoyer l'alerte à</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full bg-background border border-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50 outline-none text-sm transition-all"
+                                                value={settings?.inbound_notification_email || ''}
+                                                onChange={(e) => handleChange(prev => ({...prev, inbound_notification_email: e.target.value}))}
+                                                placeholder="admin@yakoub-etancheite.com.tn (vide = email principal)"
+                                            />
+                                            <p className="text-[11px] text-muted-foreground">Laissez vide pour utiliser l'email de support ci-dessus.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Card 2.6: Inbound Email Forwarding */}
+                                <div className={`p-5 rounded-xl border transition-all ${settings?.enable_inbound_forwarding ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-background border-border'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${settings?.enable_inbound_forwarding ? 'bg-cyan-500/10' : 'bg-muted'}`}>
+                                                <Forward className={`w-4 h-4 ${settings?.enable_inbound_forwarding ? 'text-cyan-500' : 'text-muted-foreground'}`} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-foreground text-sm">Transfert des Emails Reçus</h4>
+                                                <p className="text-xs text-muted-foreground">Transférer (faire suivre) le contenu des emails reçus vers une adresse externe.</p>
+                                            </div>
+                                        </div>
+                                        <Switch 
+                                            checked={settings?.enable_inbound_forwarding || false}
+                                            onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_inbound_forwarding: checked}))}
+                                        />
+                                    </div>
+                                    {settings?.enable_inbound_forwarding && (
+                                        <div className="ml-11 mt-3 space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email de transfert (ex: personnel)</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full bg-background border border-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/50 outline-none text-sm transition-all"
+                                                value={settings?.inbound_forward_email || ''}
+                                                onChange={(e) => handleChange(prev => ({...prev, inbound_forward_email: e.target.value}))}
+                                                placeholder="mon_email_perso@gmail.com"
+                                                required
+                                            />
+                                            <div className="flex items-center gap-2 text-[11px] text-cyan-400 mt-1">
+                                                <ArrowRight className="w-3 h-3" />
+                                                <span>Chaque message reçu sera automatiquement transféré à cette adresse.</span>
                                             </div>
                                         </div>
                                     )}
