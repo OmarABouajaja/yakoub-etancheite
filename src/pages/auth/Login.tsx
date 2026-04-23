@@ -62,10 +62,10 @@ const Login = () => {
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
-                            className="mx-auto w-20 h-20 bg-white rounded-2xl p-2 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)] relative"
+                            className="mx-auto w-20 h-20 bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl p-2 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)] relative border border-white/10"
                         >
                             <img src="/logo.png" alt="Yakoub Travaux Logo" className="w-full h-full object-contain" />
-                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg">
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg border border-background">
                                 <ShieldCheck className="w-4 h-4" />
                             </div>
                         </motion.div>
