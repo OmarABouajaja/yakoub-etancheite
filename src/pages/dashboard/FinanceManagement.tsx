@@ -412,6 +412,7 @@ const FinanceManagement: React.FC = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expenseFilter, setExpenseFilter] = useState<Expense['category'] | 'all'>('all');
+  const [expenseSearchQuery, setExpenseSearchQuery] = useState('');
 
   // Queries
   const { data: summary, isLoading: summaryLoading } = useQuery({
@@ -478,9 +479,15 @@ const FinanceManagement: React.FC = () => {
     color: cat.color,
   })).filter(c => c.value > 0);
 
-  const filteredExpenses = expenseFilter === 'all'
+  const filteredExpenses = (expenseFilter === 'all'
     ? expenses
-    : expenses.filter(e => e.category === expenseFilter);
+    : expenses.filter(e => e.category === expenseFilter))
+    .filter(e => {
+       if (!expenseSearchQuery.trim()) return true;
+       const q = expenseSearchQuery.toLowerCase();
+       return (e.description?.toLowerCase().includes(q) || e.reference?.toLowerCase().includes(q));
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const isLoading = summaryLoading || leadsLoading || expensesLoading;
 
@@ -785,10 +792,11 @@ const FinanceManagement: React.FC = () => {
         ══════════════════════════════════════════════════ */}
         {activeTab === 'Dépenses' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            {/* Category filter pills */}
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => setExpenseFilter('all')}
+            {/* Filters and Search */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-card p-4 rounded-xl border border-border shadow-sm">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setExpenseFilter('all')}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
                   expenseFilter === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50'
                 }`}
@@ -813,6 +821,16 @@ const FinanceManagement: React.FC = () => {
                   </button>
                 );
               })}
+              </div>
+              <div className="w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Rechercher une dépense..."
+                  value={expenseSearchQuery}
+                  onChange={e => setExpenseSearchQuery(e.target.value)}
+                  className="w-full bg-background border border-border rounded-md px-4 py-2 outline-none focus:border-primary text-sm transition-colors"
+                />
+              </div>
             </div>
 
             {/* Expenses table */}

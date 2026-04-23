@@ -41,6 +41,8 @@ const LeadsManagement: React.FC = () => {
     const [isEditSaving, setIsEditSaving] = useState(false);
     const [newLead, setNewLead] = useState({ name: '', phone: '', problem_type: 'roof', surface_area: '', region: '', notes: '', status: 'new' });
     const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<string>('date-desc');
 
     const { data: leads = [], isLoading } = useQuery({
         queryKey: ['leads'],
@@ -103,6 +105,8 @@ const LeadsManagement: React.FC = () => {
 
     // Filter and Sort leads
     const filteredLeads = leads.filter((lead: any) => {
+        if (statusFilter && (lead.status || 'new') !== statusFilter) return false;
+        
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         return (
@@ -113,7 +117,13 @@ const LeadsManagement: React.FC = () => {
         );
     });
 
-    const sortedLeads = [...filteredLeads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const sortedLeads = [...filteredLeads].sort((a, b) => {
+        if (sortBy === 'date-desc') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        if (sortBy === 'date-asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        if (sortBy === 'name-asc') return (a.client_name || '').localeCompare(b.client_name || '');
+        if (sortBy === 'name-desc') return (b.client_name || '').localeCompare(a.client_name || '');
+        return 0;
+    });
 
     const counts = {
         new: leads.filter((l: any) => l.status === 'new' || !l.status).length,
@@ -165,6 +175,18 @@ const LeadsManagement: React.FC = () => {
                                 className="w-full bg-background border border-border rounded-md px-4 py-2 outline-none focus:border-primary text-sm transition-colors"
                             />
                         </div>
+                        <div className="relative w-full sm:w-48">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="w-full bg-background border border-border rounded-md px-4 py-2 outline-none focus:border-primary text-sm transition-colors cursor-pointer"
+                            >
+                                <option value="date-desc">Plus récents d'abord</option>
+                                <option value="date-asc">Plus anciens d'abord</option>
+                                <option value="name-asc">Nom (A-Z)</option>
+                                <option value="name-desc">Nom (Z-A)</option>
+                            </select>
+                        </div>
                         <button 
                             onClick={() => setIsAddLeadOpen(true)}
                             className="bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 transition-all glow-button w-full sm:w-auto justify-center shrink-0"
@@ -181,12 +203,26 @@ const LeadsManagement: React.FC = () => {
                         { id: 'contacted', label: 'Contactés', count: counts.contacted, color: 'text-[hsl(var(--teal))]', bg: 'bg-[hsl(var(--teal)/0.1)] border-[hsl(var(--teal)/0.2)]' },
                         { id: 'converted', label: 'Convertis', count: counts.converted, color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/20' },
                         { id: 'lost', label: 'Perdus', count: counts.lost, color: 'text-muted-foreground', bg: 'bg-muted/10 border-border' },
-                    ].map(stat => (
-                        <div key={stat.id} className={`p-4 rounded-xl border ${stat.bg} flex flex-col justify-between`}>
-                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{stat.label}</span>
-                            <span className={`text-3xl font-display font-black mt-2 ${stat.color}`}>{stat.count}</span>
-                        </div>
-                    ))}
+                    ].map(stat => {
+                        const isActive = statusFilter === stat.id;
+                        return (
+                            <div 
+                                key={stat.id} 
+                                onClick={() => setStatusFilter(isActive ? null : stat.id)}
+                                className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all duration-200 select-none ${
+                                    isActive 
+                                    ? stat.bg + ' ring-2 ring-primary/50 scale-[1.02] shadow-lg' 
+                                    : stat.bg + ' hover:scale-[1.02] hover:bg-opacity-80 opacity-70 hover:opacity-100'
+                                }`}
+                            >
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                                    {stat.label}
+                                    {isActive && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                                </span>
+                                <span className={`text-3xl font-display font-black mt-2 ${stat.color}`}>{stat.count}</span>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Table / List Container */}

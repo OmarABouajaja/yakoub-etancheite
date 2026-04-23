@@ -20,6 +20,8 @@ const ProjectsManagement: React.FC = () => {
     });
     const [isUploading, setIsUploading] = useState({ before: false, after: false, gallery: false });
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'before' | 'after' | 'gallery') => {
         const files = Array.from(e.target.files || []);
@@ -126,22 +128,54 @@ const ProjectsManagement: React.FC = () => {
         <DashboardLayout>
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold font-display tracking-wider text-foreground">
                             Gestion du Portfolio
                         </h1>
-                        <p className="text-muted-foreground mt-1">
-                            {projects.length} projets dans le portfolio
+                        <p className="text-muted-foreground mt-1 text-sm">
+                            Gérez vos réalisations et montrez votre expertise. ({projects.length} projets au total)
                         </p>
                     </div>
                     <button
                         onClick={() => { setEditingProject(null); setFormData({ title: '', description: '', category: 'roof', image_before: '', image_after: '', gallery_images: [], project_type: 'before_after' }); setIsModalOpen(true); }}
-                        className="flex items-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-md font-bold uppercase tracking-wider text-sm glow-button"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white rounded-md font-bold uppercase tracking-wider text-sm glow-button transition-all w-full md:w-auto shrink-0"
                     >
                         <Plus className="w-5 h-5" />
                         Ajouter Projet
                     </button>
+                </div>
+
+                {/* Filters & Search */}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+                    <div className="flex flex-wrap gap-2">
+                        {['roof', 'wall', 'pool', 'basement'].map(cat => {
+                            const labels: Record<string, string> = { roof: 'Toiture', wall: 'Mur', pool: 'Piscine', basement: 'Sous-sol' };
+                            const isActive = categoryFilter === cat;
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setCategoryFilter(isActive ? null : cat)}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                        isActive 
+                                        ? 'bg-primary text-primary-foreground shadow-md scale-105' 
+                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                    }`}
+                                >
+                                    {labels[cat]}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="w-full sm:w-64">
+                        <input
+                            type="text"
+                            placeholder="Rechercher un projet..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full bg-background border border-border rounded-md px-4 py-2 outline-none focus:border-primary text-sm transition-colors"
+                        />
+                    </div>
                 </div>
 
                 {/* Projects Grid */}
@@ -151,10 +185,33 @@ const ProjectsManagement: React.FC = () => {
                             <div key={i} className="glass-card aspect-video animate-pulse bg-muted" />
                         ))}
                     </div>
-                ) : projects.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {projects.map((project: Project, index: number) => (
-                            <motion.div
+                ) : (() => {
+                    const filteredProjects = projects.filter((project: Project) => {
+                        if (categoryFilter && project.category !== categoryFilter) return false;
+                        if (searchQuery.trim()) {
+                            const q = searchQuery.toLowerCase();
+                            if (!(project.title?.toLowerCase().includes(q) || project.description?.toLowerCase().includes(q))) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+
+                    if (filteredProjects.length === 0) {
+                        return (
+                            <div className="glass-card p-12 text-center">
+                                <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-muted-foreground">
+                                    Aucun projet ne correspond à vos filtres.
+                                </p>
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredProjects.map((project: Project, index: number) => (
+                                <motion.div
                                 key={project.id}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -206,16 +263,10 @@ const ProjectsManagement: React.FC = () => {
                                     </p>
                                 </div>
                             </motion.div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="glass-card p-12 text-center">
-                        <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">
-                            Aucun projet pour le moment. Ajoutez votre premier projet à votre portfolio.
-                        </p>
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* Add Project Modal */}
