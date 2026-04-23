@@ -58,7 +58,7 @@ const DraggableLeadCard = ({ lead, isDraggingOverlay = false, onClick }: { lead:
 
     if (isDragging && !isDraggingOverlay) {
         return (
-            <div ref={setNodeRef} className="glass-card p-4 h-40 opacity-30 border-dashed border-2 border-primary/50" />
+            <div ref={setNodeRef} className="glass-card p-4 h-40 opacity-30 border-dashed border-2 border-primary/50 hidden md:block" />
         );
     }
 
@@ -70,23 +70,23 @@ const DraggableLeadCard = ({ lead, isDraggingOverlay = false, onClick }: { lead:
             className={`glass-card p-4 space-y-3 cursor-grab active:cursor-grabbing bg-card transition-colors ${isDraggingOverlay ? 'shadow-2xl scale-105 rotate-2' : 'hover:border-primary/50'}`}
         >
             <div className="flex items-start gap-2">
-                <div {...listeners} {...attributes} className="p-1 hover:bg-muted rounded text-muted-foreground cursor-grab">
+                <div {...listeners} {...attributes} className="hidden md:flex p-1 hover:bg-muted rounded text-muted-foreground cursor-grab active:cursor-grabbing">
                     <GripVertical className="w-4 h-4" />
                 </div>
-                <div className="flex-1">
-                    <h3 className="font-bold text-foreground">{lead.client_name}</h3>
-                    <a href={`tel:${lead.phone}`} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-1" dir="ltr">
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-foreground truncate">{lead.client_name}</h3>
+                    <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-1 bg-muted/30 px-2 py-0.5 rounded-md transition-colors" dir="ltr">
                         <Phone className="w-3 h-3" /> {lead.phone}
                     </a>
                 </div>
             </div>
 
-            <div className="space-y-1 pl-6">
+            <div className="space-y-2 pl-0 md:pl-6 pt-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {problemIcons[lead.problem_type] || <AlertTriangle className="w-3 h-3" />}
                     <span className="capitalize">{lead.problem_type}</span>
                     {lead.is_urgent && (
-                        <span className="flex items-center gap-1 text-[hsl(var(--orange))] font-bold">
+                        <span className="flex items-center gap-1 text-[hsl(var(--orange))] font-bold ml-auto">
                             <AlertTriangle className="w-3 h-3" /> Urgent
                         </span>
                     )}
@@ -96,10 +96,15 @@ const DraggableLeadCard = ({ lead, isDraggingOverlay = false, onClick }: { lead:
                     {new Date(lead.created_at).toLocaleDateString()}
                 </div>
                 {lead.message && (
-                    <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">
+                    <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2 bg-muted/20 p-2 rounded-md">
                         "{lead.message}"
                     </p>
                 )}
+            </div>
+            
+            {/* Mobile quick indicator */}
+            <div className="md:hidden pt-2 mt-2 border-t border-border/50 flex justify-center text-[10px] text-muted-foreground font-medium uppercase tracking-wider items-center gap-1">
+                <Pencil className="w-3 h-3" /> Appuyez pour gérer ce prospect
             </div>
         </div>
     );
@@ -112,7 +117,7 @@ const DroppableColumn = ({ id, title, leads, onLeadClick }: { id: LeadStatus, ti
     });
 
     return (
-        <div className="flex flex-col h-[75vh] w-[85vw] max-w-[320px] md:w-full md:max-w-none md:min-w-[280px] shrink-0 snap-center">
+        <div className="flex flex-col h-auto max-h-[500px] md:h-[75vh] w-full md:w-full md:max-w-none md:min-w-[280px] shrink-0 mb-6 md:mb-0">
             <div className="flex items-center justify-between mb-3 px-1">
                 <h3 className="font-bold text-lg text-foreground uppercase tracking-wider">{statusLabels[id] || title}</h3>
                 <span className={`px-2 py-0.5 text-xs rounded-full font-bold border ${statusColors[id]}`}>
@@ -271,14 +276,14 @@ const LeadsManagement: React.FC = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-x-auto pb-4 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden md:overflow-x-auto pb-4 custom-scrollbar">
                         <DndContext 
                             sensors={sensors}
                             collisionDetection={closestCorners}
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                         >
-                            <div className="flex gap-4 md:gap-6 min-w-max md:min-w-0 md:w-full snap-x snap-mandatory">
+                            <div className="flex flex-col md:flex-row gap-6 w-full px-1">
                                 <DroppableColumn id="new" title="Nouveau" leads={groupedLeads.new} onLeadClick={setSelectedLead} />
                                 <DroppableColumn id="contacted" title="Contacté" leads={groupedLeads.contacted} onLeadClick={setSelectedLead} />
                                 <DroppableColumn id="converted" title="Converti" leads={groupedLeads.converted} onLeadClick={setSelectedLead} />
