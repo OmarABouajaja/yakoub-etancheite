@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useActiveUsers } from '@/hooks/useActiveUsers';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, Menu, X, FileText, Star, Shield, Award, DollarSign, Circle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, Menu, X, FileText, Star, Shield, Award, DollarSign, Circle, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -46,6 +46,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { path: '/dashboard/leads', icon: Users, label: 'Prospects' },
         { path: '/dashboard/projects', icon: FolderOpen, label: 'Portfolio' },
         { path: '/dashboard/finance', icon: DollarSign, label: 'Trésorerie' },
+        { path: '/dashboard/mailbox', icon: Mail, label: 'Boîte Mail' },
         { path: '/dashboard/testimonials', icon: Star, label: 'Avis Clients' },
         { path: '/dashboard/blog', icon: FileText, label: 'Blog CMS' },
         { path: '/dashboard/partners', icon: Award, label: 'Partenaires' },
@@ -77,14 +78,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     {isSidebarOpen ? (
                         <Link to="/" className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
-                                <img src="/logo.jpg" alt="Yakoub" className="w-full h-full object-contain" />
+                                <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                             </div>
                             <span className="font-bold text-lg font-display tracking-wider">YAKOUB</span>
                         </Link>
                     ) : (
                         <Link to="/" className="mx-auto">
                             <div className="h-10 w-10 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
-                                <img src="/logo.jpg" alt="Yakoub" className="w-full h-full object-contain" />
+                                <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                             </div>
                         </Link>
                     )}
@@ -199,7 +200,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-4">
                 <Link to="/" className="flex items-center gap-2">
                     <div className="h-8 w-8 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
-                        <img src="/logo.jpg" alt="Yakoub" className="w-full h-full object-contain" />
+                        <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                     </div>
                     <span className="font-bold font-display">YAKOUB</span>
                 </Link>
@@ -280,7 +281,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </AnimatePresence>
 
             {/* Main Content */}
-            <main className="flex-1 md:p-8 p-4 pt-20 md:pt-8 overflow-auto">
+            <main className="flex-1 md:p-8 p-4 pt-24 md:pt-8 overflow-x-hidden overflow-y-auto">
                 {children}
             </main>
         </div>

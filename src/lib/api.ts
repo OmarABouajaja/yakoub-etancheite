@@ -70,6 +70,27 @@ export interface ApiError {
   detail: string;
 }
 
+// ─── Emails ──────────────────────────────────────────────────────────────────
+
+export interface Email {
+  id: string;
+  subject: string;
+  html_body?: string;
+  text_body?: string;
+  from_email: string;
+  to_email: string;
+  direction: 'inbound' | 'outbound';
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface SendEmailPayload {
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
+}
+
 // ─── Leads (Supabase) ────────────────────────────────────────────────────────
 
 /**
@@ -77,19 +98,16 @@ export interface ApiError {
  * Writes directly to Supabase — no backend required
  */
 export async function submitLead(data: LeadData): Promise<LeadResponse> {
-  const { data: result, error } = await supabase
-    .from('leads')
-    .insert([{
-      client_name: data.client_name,
-      phone: data.phone,
-      problem_type: data.problem_type,
-      surface_area: data.surface_area ?? null,
-      is_urgent: data.is_urgent,
-      message: data.message ?? null,
-      status: 'new',
-    }])
-    .select('id')
-    .single();
+  // Use RPC function to safely handle duplicate phone numbers (upsert)
+  const { data: leadId, error } = await supabase
+    .rpc('submit_lead_with_upsert', {
+      p_client_name: data.client_name,
+      p_phone: data.phone,
+      p_problem_type: data.problem_type,
+      p_surface_area: data.surface_area ?? null,
+      p_is_urgent: data.is_urgent,
+      p_message: data.message ?? null
+    });
 
   if (error) {
     console.error('submitLead error:', error);
@@ -123,7 +141,7 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
     console.error("Failed to send email notification:", emailError);
   }
 
-  return { id: result.id, message: 'Lead submitted successfully' };
+  return { id: leadId, message: 'Lead submitted successfully' };
 }
 
 /**
@@ -357,3 +375,96 @@ export async function getSettings(): Promise<Settings> {
 export async function saveSettings(settings: Settings): Promise<Settings> {
   return settings;
 }
+
+// ─── Email Management ────────────────────────────────────────────────────────
+
+/**
+ * Fetch all emails (inbox + sent)
+ */
+export async function getEmails(): Promise<Email[]> {
+  const { data, error } = await supabase
+    .from('emails')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('getEmails error:', error);
+    return [];
+  }
+
+  return (data as Email[]) || [];
+}
+
+/**
+ * Mark an email as read
+ */
+export async function markEmailAsRead(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('emails')
+    .update({ is_read: true })
+    .eq('id', id);
+
+  if (error) {
+    console.error('markEmailAsRead error:', error);
+  }
+}
+
+/**
+ * Send an email from the admin dashboard and log it to Supabase
+ */
+export async function sendAdminEmail(payload: SendEmailPayload): Promise<void> {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session.session) throw new Error('Not authenticated');
+
+  // 1. Get admin email from settings (or fallback)
+  const { data: settings } = await supabase.from('site_settings').select('email').single();
+  const fromEmail = settings?.email || 'team@yakoub-etancheite.com.tn'; 
+
+  // 2. Call the Edge Function to dispatch via Resend
+  const res = await fetch('/api/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to send email' }));
+    throw new Error(err.error || 'Failed to send email');
+  }
+
+  // 3. Log outbound email to Supabase
+  const toEmailStr = Array.isArray(payload.to) ? payload.to.join(', ') : payload.to;
+  
+  await supabase.from('emails').insert([{
+    subject: payload.subject,
+    html_body: payload.html,
+    text_body: payload.text,
+    from_email: fromEmail,
+    to_email: toEmailStr,
+    direction: 'outbound',
+    is_read: true
+  }]);
+}
+
+/**
+ * Delete an email
+ */
+export async function deleteEmail(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('emails')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('deleteEmail error:', error);
+    throw new Error(error.message);
+  }
+}
+
+

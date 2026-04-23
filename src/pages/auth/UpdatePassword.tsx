@@ -123,7 +123,7 @@ const UpdatePassword = () => {
                 className="w-full max-w-md relative z-10"
             >
                 <div className="text-center mb-8">
-                    <img src="/logo.jpg" alt="Logo" className="w-16 h-16 rounded-md object-contain border-2 border-primary/20 bg-white mx-auto p-1 mb-4" />
+                    <img src="/logo.png" alt="Logo" className="w-16 h-16 rounded-md object-contain border-2 border-primary/20 bg-white mx-auto p-1 mb-4" />
                     <h1 className="text-2xl font-bold font-display tracking-wider text-foreground">Bienvenue dans l'équipe</h1>
                     <p className="text-muted-foreground mt-2">Veuillez sécuriser votre compte en choisissant un mot de passe</p>
                 </div>

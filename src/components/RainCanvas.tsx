@@ -25,7 +25,7 @@ const RainCanvas: React.FC = () => {
   }, []);
 
   /**
-   * Brand-matched rain palette — extracted from logo.jpg:
+   * Brand-matched rain palette — extracted from logo.png:
    *   Steel Blue  hsl(204, 62%, 53%)  — house outline / drops
    *   Bright Cyan hsl(197, 85%, 48%)  — wave/drip accent
    *   Light Blue  hsl(200, 75%, 65%)  — highlight shimmer
@@ -159,7 +159,7 @@ const RainCanvas: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-auto"
+      className="absolute inset-0 pointer-events-none"
       style={{ zIndex: 0 }}
       aria-hidden="true"
     />

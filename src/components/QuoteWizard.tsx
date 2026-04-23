@@ -115,6 +115,16 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onClose }) => {
   const handleSubmit = async () => {
     if (!validateStep(3)) return;
 
+    // Spam prevention: Check if a request was submitted recently (last 5 minutes)
+    const lastSubmission = localStorage.getItem('yakoub_last_lead_time');
+    if (lastSubmission) {
+      const timeSinceLast = Date.now() - parseInt(lastSubmission, 10);
+      if (timeSinceLast < 5 * 60 * 1000) { // 5 minutes
+        setIsSuccess(true); // Show success screen to prevent spamming
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -130,6 +140,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onClose }) => {
         message: richMessage
       });
 
+      localStorage.setItem('yakoub_last_lead_time', Date.now().toString());
       setIsSuccess(true);
 
       // Fire confetti (Optimized for mobile performance)

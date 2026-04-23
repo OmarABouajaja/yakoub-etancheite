@@ -54,7 +54,7 @@ const Login = () => {
                 <Card className="glass-card border-2 border-primary/20">
                     <CardHeader className="text-center">
                         <div className="mx-auto w-16 h-16 bg-white rounded-md p-1 flex items-center justify-center mb-4 border-2 border-primary/20">
-                            <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
+                            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                         </div>
                         <CardTitle className="text-2xl font-bold font-display tracking-wider">
                             Admin Access

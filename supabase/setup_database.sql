@@ -1,10 +1,10 @@
--- ============================================================
+﻿-- ============================================================
+--  YAKOUB TRAVAUX Ã¢â‚¬â€ Supabase Database Schema
 --  YAKOUB TRAVAUX â€” Supabase Database Schema
---  YAKOUB TRAVAUX — Supabase Database Schema
---  Version: 2.0 — Production Ready
+--  Version: 2.0 â€” Production Ready
 --  Updated: 2026-04
 -- ============================================================
--- Run this in Supabase SQL Editor (Dashboard → SQL Editor → New Query)
+-- Run this in Supabase SQL Editor (Dashboard â†’ SQL Editor â†’ New Query)
 -- Safe to re-run: all statements use IF NOT EXISTS / OR REPLACE
 
 -- Enable extensions
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     id                INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),  -- singleton
     phone_primary     TEXT DEFAULT '+21625589419',
     email             TEXT DEFAULT '',
-    address           TEXT DEFAULT 'Tunis — Toute la Tunisie',
+    address           TEXT DEFAULT 'Tunis â€” Toute la Tunisie',
     whatsapp_number   TEXT DEFAULT '21625589419',
     instagram_url     TEXT DEFAULT 'https://www.instagram.com/yakoub_etanche',
     facebook_url      TEXT DEFAULT 'https://www.facebook.com/yakoubetanche',
@@ -172,7 +172,7 @@ VALUES (
     1,
     '+21625589419',
     'yakoub.etanche@gmail.com',
-    'Tunis — Toute la Tunisie 🇹🇳',
+    'Tunis â€” Toute la Tunisie ðŸ‡¹ðŸ‡³',
     '21625589419',
     'https://www.instagram.com/yakoub_etanche',
     'https://www.facebook.com/yakoubetanche',
@@ -186,7 +186,7 @@ ON CONFLICT (id) DO NOTHING;  -- Don't overwrite existing settings
 
 -- ============================================================
 -- 5. TEAM MEMBERS TABLE
---    NOTE: Code uses 'team_members' (not 'team') â€” fixed here
+--    NOTE: Code uses 'team_members' (not 'team') Ã¢â‚¬â€ fixed here
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.team_members (
     id         UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -275,7 +275,7 @@ ALTER TABLE public.partners       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses       ENABLE ROW LEVEL SECURITY;
 
--- ── Public Read Policies ──────────────────────────────────
+-- â”€â”€ Public Read Policies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 -- Drop existing policies (safe re-run)
 DROP POLICY IF EXISTS "Public read projects"      ON public.projects;
@@ -295,14 +295,14 @@ CREATE POLICY "Public read partners"      ON public.partners      FOR SELECT USI
 CREATE POLICY "Public read testimonials"  ON public.testimonials  FOR SELECT USING (true);
 CREATE POLICY "Public read site_settings" ON public.site_settings FOR SELECT USING (true);
 
--- ── Public Insert (Quote Wizard → leads) ──────────────────
+-- â”€â”€ Public Insert (Quote Wizard â†’ leads) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DROP POLICY IF EXISTS "Public insert leads" ON public.leads;
 DROP POLICY IF EXISTS "Anyone can insert leads" ON public.leads;
 CREATE POLICY "Public insert leads"
     ON public.leads FOR INSERT
     WITH CHECK (true);
 
--- ── Authenticated Admin Policies (full access) ────────────
+-- â”€â”€ Authenticated Admin Policies (full access) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 -- Leads full admin access
 DROP POLICY IF EXISTS "Authenticated full access on leads" ON public.leads;
@@ -346,7 +346,7 @@ CREATE POLICY "Authenticated full access on site_settings"
     USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
--- Team members full admin access (no public read — it's sensitive)
+-- Team members full admin access (no public read â€” it's sensitive)
 DROP POLICY IF EXISTS "Authenticated full access on team_members" ON public.team_members;
 CREATE POLICY "Authenticated full access on team_members"
     ON public.team_members
@@ -410,7 +410,7 @@ END $$;
 
 -- ============================================================
 -- RLS POLICIES: Ensure UPDATE access for all admin tables
--- (Idempotent â€” safe to re-run)
+-- (Idempotent Ã¢â‚¬â€ safe to re-run)
 -- ============================================================
 
 -- LEADS: full CRUD for authenticated admins
@@ -470,14 +470,14 @@ BEGIN
 END $$;
 
 -- ============================================================
--- SAMPLE / SEED DATA (Optional â€” uncomment to insert demo data)
+-- SAMPLE / SEED DATA (Optional Ã¢â‚¬â€ uncomment to insert demo data)
 -- ============================================================
 
 -- Demo testimonial
 -- INSERT INTO public.testimonials (client_name, content, rating, city, is_featured)
 -- VALUES
 --   ('Ahmed B.', 'Service exceptionnel ! Mon toit ne fuit plus depuis 2 ans.', 5, 'Tunis', TRUE),
---   ('Sami L.',  'Équipe professionnelle, travail soigné et rapide. Très satisfait !', 5, 'Sousse', TRUE)
+--   ('Sami L.',  'Ã‰quipe professionnelle, travail soignÃ© et rapide. TrÃ¨s satisfait !', 5, 'Sousse', TRUE)
 -- ON CONFLICT DO NOTHING;
 
 -- Demo partner
@@ -492,3 +492,133 @@ END $$;
 -- SELECT schemaname, tablename, policyname, cmd FROM pg_policies WHERE schemaname IN ('public', 'storage') ORDER BY schemaname, tablename;
 -- SELECT * FROM public.site_settings;
 
+-- Activity Log table for admin action tracking
+-- Run this in Supabase SQL Editor
+
+CREATE TABLE IF NOT EXISTS activity_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_email TEXT NOT NULL,
+  user_name TEXT NOT NULL DEFAULT '',
+  action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'login', 'invite', 'status_change', 'publish')),
+  entity TEXT NOT NULL,          -- e.g. 'lead', 'project', 'blog', 'team_member', 'expense'
+  entity_id TEXT,                -- ID of the affected row (nullable for general actions)
+  details TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Index for fast queries ordered by time
+CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log (created_at DESC);
+
+-- Enable RLS
+ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+
+-- Only authenticated users can read activity logs
+CREATE POLICY "Authenticated users can view activity log"
+  ON activity_log FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+-- Only authenticated users can insert activity logs
+CREATE POLICY "Authenticated users can insert activity log"
+  ON activity_log FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- Auto-cleanup: keep only last 500 entries (run periodically or via trigger)
+-- Optional: uncomment if you want automatic pruning
+-- CREATE OR REPLACE FUNCTION prune_activity_log()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--   DELETE FROM activity_log
+--   WHERE id NOT IN (
+--     SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 500
+--   );
+--   RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+-- 
+-- CREATE TRIGGER trigger_prune_activity_log
+--   AFTER INSERT ON activity_log
+--   FOR EACH STATEMENT
+--   EXECUTE FUNCTION prune_activity_log();
+-- Create the emails table
+CREATE TABLE IF NOT EXISTS public.emails (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    subject TEXT NOT NULL,
+    html_body TEXT,
+    text_body TEXT,
+    from_email TEXT NOT NULL,
+    to_email TEXT NOT NULL,
+    direction TEXT NOT NULL CHECK (direction IN ('inbound', 'outbound')),
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE public.emails ENABLE ROW LEVEL SECURITY;
+
+-- Policies for Authenticated users (Admins)
+CREATE POLICY "Admins can view all emails" 
+    ON public.emails FOR SELECT 
+    USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can insert outbound emails" 
+    ON public.emails FOR INSERT 
+    WITH CHECK (auth.role() = 'authenticated' AND direction = 'outbound');
+
+CREATE POLICY "Admins can update emails (mark as read)" 
+    ON public.emails FOR UPDATE 
+    USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can delete emails" 
+    ON public.emails FOR DELETE 
+    USING (auth.role() = 'authenticated');
+
+-- Add realtime subscription
+ALTER PUBLICATION supabase_realtime ADD TABLE emails;
+
+-- ============================================================
+-- UPSERT LEAD LOGIC (ANTI-DUPLICATE)
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.submit_lead_with_upsert(
+  p_client_name TEXT,
+  p_phone TEXT,
+  p_problem_type TEXT,
+  p_surface_area INTEGER,
+  p_is_urgent BOOLEAN,
+  p_message TEXT
+) RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_lead_id UUID;
+  v_existing_status TEXT;
+  v_existing_msg TEXT;
+BEGIN
+  -- Check if phone exists
+  SELECT id, status, message INTO v_lead_id, v_existing_status, v_existing_msg
+  FROM public.leads 
+  WHERE phone = p_phone 
+  LIMIT 1;
+
+  IF v_lead_id IS NOT NULL THEN
+    -- Upsert/Update case
+    UPDATE public.leads
+    SET 
+      client_name = p_client_name,
+      problem_type = p_problem_type,
+      surface_area = p_surface_area,
+      is_urgent = p_is_urgent,
+      status = 'new',
+      message = '[RELANCE/MISE À JOUR] ' || p_message || CHR(10) || '--- Ancien message ---' || CHR(10) || COALESCE(v_existing_msg, ''),
+      updated_at = NOW()
+    WHERE id = v_lead_id;
+    RETURN v_lead_id;
+  ELSE
+    -- Insert new
+    INSERT INTO public.leads (client_name, phone, problem_type, surface_area, is_urgent, message, status)
+    VALUES (p_client_name, p_phone, p_problem_type, p_surface_area, p_is_urgent, p_message, 'new')
+    RETURNING id INTO v_lead_id;
+    RETURN v_lead_id;
+  END IF;
+END;
+$$;

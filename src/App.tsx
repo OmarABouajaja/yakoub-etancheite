@@ -26,6 +26,7 @@ const TeamManagement = lazy(() => import("./pages/dashboard/TeamManagement"));
 const SettingsManagement = lazy(() => import("./pages/dashboard/SettingsManagement"));
 const PartnersManagement = lazy(() => import("./pages/dashboard/PartnersManagement"));
 const FinanceManagement = lazy(() => import("./pages/dashboard/FinanceManagement"));
+const MailboxManagement = lazy(() => import("./pages/dashboard/MailboxManagement"));
 const UpdatePassword = lazy(() => import("./pages/auth/UpdatePassword"));
 
 const PageLoader = () => (
@@ -89,6 +90,14 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <FinanceManagement />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/mailbox"
+                element={
+                  <RequireAuth>
+                    <MailboxManagement />
                   </RequireAuth>
                 }
               />

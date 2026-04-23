@@ -47,7 +47,7 @@ const Navbar: React.FC<NavbarProps> = ({ onQuoteClick }) => {
           <a href="#" className="flex items-center gap-3 group">
             <div className="h-12 w-12 md:h-14 md:w-14 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden transform group-hover:scale-105 transition-transform border-2 border-primary/20">
               <img
-                src="/logo.jpg"
+                src="/logo.png"
                 alt="Yakoub Travaux"
                 className="w-full h-full object-contain"
               />

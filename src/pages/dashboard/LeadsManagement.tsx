@@ -112,7 +112,7 @@ const DroppableColumn = ({ id, title, leads, onLeadClick }: { id: LeadStatus, ti
     });
 
     return (
-        <div className="flex flex-col h-[75vh] w-full min-w-[280px]">
+        <div className="flex flex-col h-[75vh] w-[85vw] max-w-[320px] md:w-full md:max-w-none md:min-w-[280px] shrink-0 snap-center">
             <div className="flex items-center justify-between mb-3 px-1">
                 <h3 className="font-bold text-lg text-foreground uppercase tracking-wider">{statusLabels[id] || title}</h3>
                 <span className={`px-2 py-0.5 text-xs rounded-full font-bold border ${statusColors[id]}`}>
@@ -278,7 +278,7 @@ const LeadsManagement: React.FC = () => {
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                         >
-                            <div className="flex gap-6 min-w-max">
+                            <div className="flex gap-4 md:gap-6 min-w-max md:min-w-0 md:w-full snap-x snap-mandatory">
                                 <DroppableColumn id="new" title="Nouveau" leads={groupedLeads.new} onLeadClick={setSelectedLead} />
                                 <DroppableColumn id="contacted" title="Contacté" leads={groupedLeads.contacted} onLeadClick={setSelectedLead} />
                                 <DroppableColumn id="converted" title="Converti" leads={groupedLeads.converted} onLeadClick={setSelectedLead} />

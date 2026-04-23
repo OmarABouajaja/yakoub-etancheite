@@ -74,20 +74,20 @@ const KpiCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`glass-card p-6 border ${c.border} shadow-lg ${c.glow}`}
+      className={`glass-card p-4 sm:p-6 border ${c.border} shadow-lg ${c.glow}`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
-        <div className={`p-2 rounded-lg ${c.bg}`}>
-          <Icon className={`w-5 h-5 ${c.text}`} />
+      <div className="flex items-start justify-between mb-2 sm:mb-4">
+        <span className="text-[10px] sm:text-sm font-medium text-muted-foreground uppercase tracking-wider line-clamp-2 min-h-[30px] sm:min-h-0">{label}</span>
+        <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${c.bg}`}>
+          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${c.text}`} />
         </div>
       </div>
-      <p className={`text-2xl font-bold font-mono ${c.text}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      <p className={`text-xl sm:text-2xl font-bold font-mono truncate ${c.text}`}>{value}</p>
+      {sub && <p className="text-[9px] sm:text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
       {trend !== undefined && (
-        <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {Math.abs(trend).toFixed(1)}% vs mois dernier
+        <div className={`flex items-center gap-1 mt-1 sm:mt-2 text-[9px] sm:text-xs font-medium ${trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          {trend >= 0 ? <TrendingUp className="w-2 h-2 sm:w-3 sm:h-3" /> : <TrendingDown className="w-2 h-2 sm:w-3 sm:h-3" />}
+          {Math.abs(trend).toFixed(1)}%
         </div>
       )}
     </motion.div>
@@ -529,13 +529,13 @@ const FinanceManagement: React.FC = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
             {/* KPI Cards */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
                 {[1,2,3,4].map(i => (
-                  <div key={i} className="glass-card p-6 h-36 animate-pulse bg-muted/20" />
+                  <div key={i} className="glass-card p-4 sm:p-6 h-28 sm:h-36 animate-pulse bg-muted/20" />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
                 <KpiCard
                   label="Revenus Totaux (Payés)"
                   value={formatTND(summary?.totalRevenue || 0)}

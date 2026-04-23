@@ -38,28 +38,28 @@ const StatsCard: React.FC<StatsCardProps> = ({
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 relative overflow-hidden"
+            className="glass-card p-4 md:p-6 relative overflow-hidden"
         >
             {/* Gradient accent */}
             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colorClasses[color]}`} />
 
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-muted-foreground text-sm uppercase tracking-wider mb-2">{title}</p>
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                    <p className="text-muted-foreground text-[10px] md:text-sm uppercase tracking-wider mb-1 md:mb-2 truncate">{title}</p>
                     {isLoading ? (
-                        <div className="h-10 w-24 bg-muted/50 rounded animate-pulse" />
+                        <div className="h-8 md:h-10 w-20 md:w-24 bg-muted/50 rounded animate-pulse" />
                     ) : (
-                        <p className="text-4xl font-bold font-display text-foreground">{value}</p>
+                        <p className="text-2xl md:text-4xl font-bold font-display text-foreground truncate">{value}</p>
                     )}
                     
                     {!isLoading && trend && (
-                        <p className={`text-sm mt-2 ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                        <p className={`text-[10px] md:text-sm mt-1 md:mt-2 truncate ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
                             {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}% vs last month
                         </p>
                     )}
                 </div>
-                <div className={`p-3 rounded-md ${iconBgClasses[color]}`}>
-                    <Icon className="w-6 h-6" />
+                <div className={`p-2 md:p-3 rounded-md shrink-0 ${iconBgClasses[color]}`}>
+                    <Icon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
             </div>
         </motion.div>

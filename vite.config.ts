@@ -68,13 +68,13 @@ export default defineConfig(({ mode }) => ({
         categories: ['business', 'construction', 'services'],
         icons: [
           {
-            src: 'logo.jpg',
+            src: 'logo.png',
             sizes: '192x192',
             type: 'image/jpeg',
             purpose: 'any'
           },
           {
-            src: 'logo.jpg',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/jpeg',
             purpose: 'any maskable'

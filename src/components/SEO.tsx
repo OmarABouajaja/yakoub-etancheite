@@ -52,7 +52,7 @@ export default function SEO({
     "name": "Yakoub Travaux",
     "alternateName": "يعقوب للعزل المائي",
     "image": `${SITE_URL}/og-preview.png`,
-    "logo": `${SITE_URL}/logo.jpg`,
+    "logo": `${SITE_URL}/logo.png`,
     "description": description,
     "telephone": phone || "+21625589419",
     "email": "yakoub.etanche@gmail.com",
@@ -135,7 +135,7 @@ export default function SEO({
     "publisher": {
       "@type": "Organization",
       "name": "Yakoub Travaux",
-      "logo": { "@type": "ImageObject", "url": `${SITE_URL}/logo.jpg` }
+      "logo": { "@type": "ImageObject", "url": `${SITE_URL}/logo.png` }
     },
     "mainEntityOfPage": { "@type": "WebPage", "@id": fullUrl }
   } : null;
