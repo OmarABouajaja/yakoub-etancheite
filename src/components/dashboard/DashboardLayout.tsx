@@ -77,14 +77,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <div className="h-20 flex items-center justify-between px-4 border-b border-border">
                     {isSidebarOpen ? (
                         <Link to="/" className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
+                            <div className="h-10 w-10 bg-gradient-to-br from-slate-800 to-slate-950 rounded-lg p-1.5 flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
                                 <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                             </div>
-                            <span className="font-bold text-lg font-display tracking-wider">YAKOUB</span>
+                            <div className="flex flex-col -gap-1">
+                                <span className="font-black text-lg font-display tracking-tight leading-none text-foreground">YAKOUB</span>
+                                <span className="text-[8px] text-primary/80 font-bold uppercase tracking-[0.2em] leading-none">ÉTANCHÉITÉ</span>
+                            </div>
                         </Link>
                     ) : (
                         <Link to="/" className="mx-auto">
-                            <div className="h-10 w-10 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
+                            <div className="h-10 w-10 bg-gradient-to-br from-slate-800 to-slate-950 rounded-lg p-1.5 flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
                                 <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                             </div>
                         </Link>
@@ -199,10 +202,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-4">
                 <Link to="/" className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden border border-primary/20">
+                    <div className="h-9 w-9 bg-gradient-to-br from-slate-800 to-slate-950 rounded-lg p-1 flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
                         <img src="/logo.png" alt="Yakoub" className="w-full h-full object-contain" />
                     </div>
-                    <span className="font-bold font-display">YAKOUB</span>
+                    <div className="flex flex-col -gap-1">
+                        <span className="font-black text-sm font-display tracking-tight leading-none text-foreground">YAKOUB</span>
+                        <span className="text-[7px] text-primary/80 font-bold uppercase tracking-[0.2em] leading-none">ÉTANCHÉITÉ</span>
+                    </div>
                 </Link>
 
                 <div className="flex items-center gap-2">

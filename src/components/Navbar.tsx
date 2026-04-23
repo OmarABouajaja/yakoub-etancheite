@@ -44,19 +44,20 @@ const Navbar: React.FC<NavbarProps> = ({ onQuoteClick }) => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="h-12 w-12 md:h-14 md:w-14 bg-white rounded-md p-0.5 flex items-center justify-center overflow-hidden transform group-hover:scale-105 transition-transform border-2 border-primary/20">
+          <a href="#" className="flex items-center gap-4 group">
+            <div className="h-12 w-12 md:h-14 md:w-14 bg-gradient-to-br from-slate-800 to-slate-950 rounded-xl p-1.5 flex items-center justify-center overflow-hidden transform group-hover:scale-105 transition-all duration-300 border border-white/10 shadow-2xl relative">
+              <div className="absolute inset-0 bg-primary/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <img
                 src="/logo.png"
                 alt="Yakoub Travaux"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain relative z-10"
               />
             </div>
-            <div className="flex flex-col">
-              <span className="text-foreground font-bold text-xl font-display tracking-wider">
+            <div className="flex flex-col -gap-1">
+              <span className="text-foreground font-black text-2xl font-display tracking-tight leading-none">
                 YAKOUB
               </span>
-              <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
+              <span className="text-[10px] text-primary/80 font-bold uppercase tracking-[0.3em] leading-none mt-1">
                 ÉTANCHÉITÉ
               </span>
             </div>
