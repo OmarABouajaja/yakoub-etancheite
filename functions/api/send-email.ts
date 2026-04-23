@@ -10,7 +10,7 @@ export const onRequestPost = async (context: any) => {
       throw new Error('API key not found');
     }
 
-    const { to, subject, html } = await context.request.json() as any;
+    const { to, subject, html, text, from } = await context.request.json() as any;
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -19,17 +19,19 @@ export const onRequestPost = async (context: any) => {
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'Yakoub Etancheite TEAM <team@yakoub-etancheite.com.tn>',
+        from: from || 'Yakoub Etancheite TEAM <team@yakoub-etancheite.com.tn>',
         to: Array.isArray(to) ? to : [to],
         subject: subject,
         html: html,
+        ...(text ? { text } : {}),
       }),
     });
 
     const data = await res.json();
 
+    // Forward the actual status code from Resend API
     return new Response(JSON.stringify(data), {
-      status: 200,
+      status: res.status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {

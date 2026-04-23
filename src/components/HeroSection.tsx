@@ -34,7 +34,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuoteClick }) => {
           ]);
         }
       });
-  }, []);
+  }, [t]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden spray-texture">

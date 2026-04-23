@@ -22,7 +22,7 @@ export interface LeadFinancials {
 
 export interface Expense {
   id: string;
-  category: 'food' | 'salary' | 'transport' | 'material' | 'equipment' | 'other';
+  category: 'food' | 'salary' | 'transport' | 'material' | 'equipment' | 'rent' | 'utilities' | 'other';
   description: string;
   amount: number;
   date: string;

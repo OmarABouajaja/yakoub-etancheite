@@ -366,7 +366,7 @@ export async function getSettings(): Promise<Settings> {
   return {
     whatsapp_number: data?.whatsapp_number ?? '',
     admin_email: data?.email ?? '',
-    enable_email_notifications: false,
+    enable_email_notifications: data?.enable_email_notifications !== false,
     enable_whatsapp_notifications: true,
     default_language: 'fr',
   };

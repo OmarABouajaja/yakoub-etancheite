@@ -6,6 +6,8 @@ import { useActiveUsers } from '@/hooks/useActiveUsers';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, Menu, X, FileText, Star, Shield, Award, DollarSign, Circle, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -19,6 +21,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { activeUsers } = useActiveUsers();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Fetch unread email count for sidebar badge
+    const { data: unreadEmailCount = 0 } = useQuery({
+        queryKey: ['unread-emails-count'],
+        queryFn: async () => {
+            const { count, error } = await supabase
+                .from('emails')
+                .select('*', { count: 'exact', head: true })
+                .eq('direction', 'inbound')
+                .eq('is_read', false);
+            if (error) return 0;
+            return count || 0;
+        },
+        refetchInterval: 30000,
+        staleTime: 15000,
+    });
 
     const pageLabels: Record<string, string> = {
         '/dashboard': 'Aperçu',
@@ -115,7 +133,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 }`}
                         >
                             <Icon className="w-5 h-5 flex-shrink-0" />
-                            {isSidebarOpen && <span className="font-medium">{label}</span>}
+                            {isSidebarOpen && <span className="font-medium flex-1">{label}</span>}
+                            {path === '/dashboard/mailbox' && unreadEmailCount > 0 && (
+                                <span className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold min-w-[20px] text-center">
+                                    {unreadEmailCount}
+                                </span>
+                            )}
                         </Link>
                     ))}
                 </nav>
@@ -269,7 +292,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />
-                                    <span className="font-medium">{label}</span>
+                                    <span className="font-medium flex-1">{label}</span>
+                                    {path === '/dashboard/mailbox' && unreadEmailCount > 0 && (
+                                        <span className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold min-w-[20px] text-center">
+                                            {unreadEmailCount}
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                         </nav>

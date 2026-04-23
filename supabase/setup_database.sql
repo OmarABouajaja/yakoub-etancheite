@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 --  YAKOUB TRAVAUX Ã¢â‚¬â€ Supabase Database Schema
 --  YAKOUB TRAVAUX â€” Supabase Database Schema
 --  Version: 2.0 â€” Production Ready
@@ -539,7 +539,9 @@ CREATE POLICY "Authenticated users can insert activity log"
 --   AFTER INSERT ON activity_log
 --   FOR EACH STATEMENT
 --   EXECUTE FUNCTION prune_activity_log();
--- Create the emails table
+-- ============================================================
+-- 9. EMAILS TABLE (inbound/outbound via Resend)
+-- ============================================================
 CREATE TABLE IF NOT EXISTS public.emails (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     subject TEXT NOT NULL,
@@ -552,28 +554,58 @@ CREATE TABLE IF NOT EXISTS public.emails (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS idx_emails_direction ON public.emails(direction);
+CREATE INDEX IF NOT EXISTS idx_emails_created   ON public.emails(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_emails_is_read   ON public.emails(is_read) WHERE is_read = false;
+
 -- Enable RLS
 ALTER TABLE public.emails ENABLE ROW LEVEL SECURITY;
 
--- Policies for Authenticated users (Admins)
+-- Drop old policies (safe re-run)
+DROP POLICY IF EXISTS "Admins can view all emails" ON public.emails;
+DROP POLICY IF EXISTS "Admins can insert outbound emails" ON public.emails;
+DROP POLICY IF EXISTS "Admins can update emails (mark as read)" ON public.emails;
+DROP POLICY IF EXISTS "Admins can delete emails" ON public.emails;
+DROP POLICY IF EXISTS "Service role full access emails" ON public.emails;
+DROP POLICY IF EXISTS "Authenticated full access on emails" ON public.emails;
+DROP POLICY IF EXISTS "Authenticated insert emails" ON public.emails;
+
+-- Authenticated users: read all emails
 CREATE POLICY "Admins can view all emails" 
     ON public.emails FOR SELECT 
     USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Admins can insert outbound emails" 
+-- Authenticated users: insert any direction (outbound from dashboard)
+CREATE POLICY "Authenticated insert emails" 
     ON public.emails FOR INSERT 
-    WITH CHECK (auth.role() = 'authenticated' AND direction = 'outbound');
+    WITH CHECK (auth.role() = 'authenticated');
 
+-- Service role: full access for webhook inbound inserts
+CREATE POLICY "Service role full access emails"
+    ON public.emails FOR ALL
+    USING (auth.role() = 'service_role')
+    WITH CHECK (auth.role() = 'service_role');
+
+-- Authenticated users: update (mark as read)
 CREATE POLICY "Admins can update emails (mark as read)" 
     ON public.emails FOR UPDATE 
     USING (auth.role() = 'authenticated');
 
+-- Authenticated users: delete
 CREATE POLICY "Admins can delete emails" 
     ON public.emails FOR DELETE 
     USING (auth.role() = 'authenticated');
 
--- Add realtime subscription
-ALTER PUBLICATION supabase_realtime ADD TABLE emails;
+-- Add realtime subscription (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'emails'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE emails;
+  END IF;
+END $$;
 
 -- ============================================================
 -- UPSERT LEAD LOGIC (ANTI-DUPLICATE)

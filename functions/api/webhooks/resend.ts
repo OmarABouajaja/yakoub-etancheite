@@ -1,3 +1,22 @@
+/**
+ * Resend Inbound Email Webhook
+ * 
+ * Resend sends webhook events as:
+ * {
+ *   "type": "email.received",
+ *   "created_at": "...",
+ *   "data": {
+ *     "from": "sender@example.com",
+ *     "to": ["inbox@yakoub-etancheite.com.tn"],
+ *     "subject": "...",
+ *     "html": "...",
+ *     "text": "..."
+ *   }
+ * }
+ * 
+ * Or for simpler setups, the payload may be flat with from/to/subject/html/text directly.
+ * This handler supports both formats.
+ */
 export const onRequestPost = async (context: any) => {
   try {
     const supabaseUrl = context.env.SUPABASE_URL;
@@ -8,18 +27,92 @@ export const onRequestPost = async (context: any) => {
       return new Response('Configuration error', { status: 500 });
     }
 
-    // Parse the Resend Inbound Webhook payload
-    // Resend sends a JSON with `from`, `to`, `subject`, `html`, `text` directly, or wrapped depending on the webhook setup.
-    // Generally, for inbound emails, Resend sends a payload containing the email data.
-    const payload = await context.request.json();
+    const rawBody = await context.request.text();
+    let payload: any;
 
-    const fromEmail = payload.from || 'unknown';
-    const toEmail = payload.to || 'unknown';
-    const subject = payload.subject || 'No Subject';
-    const htmlBody = payload.html || '';
-    const textBody = payload.text || '';
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      console.error('Invalid JSON payload');
+      return new Response('Invalid JSON', { status: 400 });
+    }
 
-    // Insert into Supabase
+    // Optional: Verify webhook signature if RESEND_WEBHOOK_SECRET is set
+    const webhookSecret = context.env.RESEND_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const svixId = context.request.headers.get('svix-id');
+      const svixTimestamp = context.request.headers.get('svix-timestamp');
+      const svixSignature = context.request.headers.get('svix-signature');
+
+      if (!svixId || !svixTimestamp || !svixSignature) {
+        console.error('Missing svix headers for webhook verification');
+        return new Response('Missing verification headers', { status: 401 });
+      }
+
+      // Basic timestamp validation (reject if older than 5 minutes)
+      const now = Math.floor(Date.now() / 1000);
+      const ts = parseInt(svixTimestamp, 10);
+      if (isNaN(ts) || Math.abs(now - ts) > 300) {
+        console.error('Webhook timestamp too old or invalid');
+        return new Response('Invalid timestamp', { status: 401 });
+      }
+
+      // HMAC-SHA256 verification
+      const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`;
+      const secretBytes = Uint8Array.from(
+        atob(webhookSecret.replace('whsec_', '')),
+        c => c.charCodeAt(0)
+      );
+
+      const key = await crypto.subtle.importKey(
+        'raw',
+        secretBytes,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+
+      const signatureBytes = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedContent));
+      const expectedSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+
+      // Resend sends multiple signatures separated by space, each prefixed with version
+      const signatures = svixSignature.split(' ');
+      const isValid = signatures.some((sig: string) => {
+        const [, sigValue] = sig.split(',');
+        return sigValue === expectedSignature;
+      });
+
+      if (!isValid) {
+        console.error('Invalid webhook signature');
+        return new Response('Invalid signature', { status: 401 });
+      }
+    }
+
+    // Parse email data — handle both wrapped (event) and flat formats
+    const emailData = payload.data || payload;
+
+    // Extract from/to — can be string, array, or object
+    const extractEmail = (field: any): string => {
+      if (!field) return 'unknown';
+      if (typeof field === 'string') return field;
+      if (Array.isArray(field)) return field.map(extractEmail).join(', ');
+      if (typeof field === 'object' && field.address) return field.address;
+      return String(field);
+    };
+
+    const fromEmail = extractEmail(emailData.from);
+    const toEmail = extractEmail(emailData.to);
+    const subject = emailData.subject || 'Sans Objet';
+    const htmlBody = emailData.html || '';
+    const textBody = emailData.text || '';
+
+    // Skip non-email events (e.g. email.delivered, email.bounced, etc.)
+    if (payload.type && payload.type !== 'email.received') {
+      console.log(`Skipping non-inbound event: ${payload.type}`);
+      return new Response('OK - skipped', { status: 200 });
+    }
+
+    // Insert into Supabase emails table
     const supabaseRestUrl = `${supabaseUrl}/rest/v1/emails`;
     const res = await fetch(supabaseRestUrl, {
       method: 'POST',

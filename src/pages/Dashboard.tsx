@@ -1,11 +1,11 @@
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
-import { Users, FolderOpen, TrendingUp, Clock, ArrowRight, DollarSign, Activity, PenLine, Trash2, UserPlus, Eye, Send } from 'lucide-react';
+import { Users, FolderOpen, TrendingUp, Clock, ArrowRight, DollarSign, Activity, PenLine, Trash2, UserPlus, Eye, Send, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getLeads, getProjects, Project, Lead } from '@/lib/api';
+import { getLeads, getProjects, getEmails, Project, Lead } from '@/lib/api';
 import { getFinancialSummary, formatTND } from '@/lib/finance-api';
 import { getActivityLog, type ActivityLogEntry } from '@/lib/activity-api';
 import { formatDistanceToNow } from 'date-fns';
@@ -39,6 +39,13 @@ const Dashboard: React.FC = () => {
         queryFn: () => getActivityLog(10),
         staleTime: 30 * 1000, // 30s
     });
+
+    const { data: emails = [] } = useQuery({
+        queryKey: ['emails'],
+        queryFn: getEmails,
+        staleTime: 60 * 1000,
+    });
+    const unreadEmails = emails.filter(e => e.direction === 'inbound' && !e.is_read).length;
     
     const isLoading = isLeadsLoading || isProjectsLoading;
 
@@ -213,12 +220,12 @@ const Dashboard: React.FC = () => {
                 )}
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Link
                         to="/dashboard/leads"
                         className="glass-card p-6 flex items-center gap-4 hover:border-primary/50 transition-colors group"
                     >
-                                <div className="p-4 rounded-md bg-[hsl(var(--orange)/0.15)]">
+                        <div className="p-4 rounded-md bg-[hsl(var(--orange)/0.15)]">
                             <Users className="w-6 h-6 text-[hsl(var(--orange))]" />
                         </div>
                         <div>
@@ -242,6 +249,26 @@ const Dashboard: React.FC = () => {
                             </h3>
                             <p className="text-sm text-muted-foreground">Ajouter ou modifier des photos</p>
                         </div>
+                    </Link>
+
+                    <Link
+                        to="/dashboard/mailbox"
+                        className="glass-card p-6 flex items-center gap-4 hover:border-primary/50 transition-colors group relative"
+                    >
+                        <div className="p-4 rounded-md bg-primary/10">
+                            <Mail className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                                Boîte Mail
+                            </h3>
+                            <p className="text-sm text-muted-foreground">Emails clients et réponses</p>
+                        </div>
+                        {unreadEmails > 0 && (
+                            <span className="absolute top-3 right-3 bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+                                {unreadEmails}
+                            </span>
+                        )}
                     </Link>
 
                     <Link

@@ -9,7 +9,7 @@ import {
 import {
   TrendingUp, TrendingDown, DollarSign, AlertTriangle, CheckCircle2, Clock,
   Utensils, Users, Truck, Package, Wrench, MoreHorizontal, Plus, X, Edit2,
-  Trash2, ChevronDown, ArrowRight,
+  Trash2, ChevronDown, ArrowRight, Home, Zap
 } from 'lucide-react';
 import {
   getFinancialSummary, getConvertedLeads, getExpenses, getMonthlyData,
@@ -30,6 +30,8 @@ const EXPENSE_CATEGORIES: { value: Expense['category']; label: string; icon: Rea
   { value: 'transport', label: 'Transport', icon: Truck,      color: '#3b82f6' },
   { value: 'material',  label: 'Matériel',  icon: Package,    color: '#10b981' },
   { value: 'equipment', label: 'Équipement', icon: Wrench,     color: '#06b6d4' },
+  { value: 'rent',      label: 'Loyer',      icon: Home,       color: '#ec4899' },
+  { value: 'utilities', label: 'Factures',   icon: Zap,        color: '#eab308' },
   { value: 'other',     label: 'Autre',     icon: MoreHorizontal, color: '#6b7280' },
 ];
 

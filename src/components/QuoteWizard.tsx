@@ -508,6 +508,13 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onClose }) => {
           </button>
         )}
       </div>
+
+      {/* Submit Error Display */}
+      {submitError && (
+        <div className="mt-4 p-4 rounded-sm border-2 border-destructive/50 bg-destructive/10 text-destructive text-sm font-medium text-center">
+          {submitError}
+        </div>
+      )}
     </div>
   );
 };

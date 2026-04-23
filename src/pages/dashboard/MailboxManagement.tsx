@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEmails, sendAdminEmail, markEmailAsRead, deleteEmail, Email } from '@/lib/api';
-import { Mail, Send, Inbox, ArrowLeft, Loader2, X, Plus, Trash2, Download } from 'lucide-react';
+import { Mail, Send, Inbox, ArrowLeft, Loader2, X, Plus, Trash2, Download, RefreshCw, Search, Reply } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
+
+/** Sanitize HTML to prevent XSS from inbound emails */
+function sanitizeHtml(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    // Remove script tags and event handlers
+    div.querySelectorAll('script, iframe, object, embed, form').forEach(el => el.remove());
+    div.querySelectorAll('*').forEach(el => {
+        // Remove all on* event handler attributes
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.startsWith('on') || attr.value.startsWith('javascript:')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    return div.innerHTML;
+}
 
 const MailboxManagement = () => {
     const queryClient = useQueryClient();
     const [view, setView] = useState<'inbox' | 'sent'>('inbox');
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [isComposing, setIsComposing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     
     const [composeData, setComposeData] = useState({
         to: '',
@@ -23,6 +42,25 @@ const MailboxManagement = () => {
         queryFn: getEmails,
         refetchInterval: 30000 // auto-refresh every 30s
     });
+
+    // Supabase Realtime subscription for instant inbox updates
+    useEffect(() => {
+        const channel = supabase
+            .channel('emails-realtime')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'emails',
+            }, () => {
+                // Invalidate and refetch emails on new insert
+                queryClient.invalidateQueries({ queryKey: ['emails'] });
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
 
     const sendEmailMutation = useMutation({
         mutationFn: sendAdminEmail,
@@ -93,9 +131,20 @@ const MailboxManagement = () => {
         toast.success(`${oldEmails.length} emails exportés et supprimés.`);
     };
 
-    const filteredEmails = emails.filter(e => 
-        view === 'inbox' ? e.direction === 'inbound' : e.direction === 'outbound'
-    );
+    const filteredEmails = emails
+        .filter(e => view === 'inbox' ? e.direction === 'inbound' : e.direction === 'outbound')
+        .filter(e => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.toLowerCase();
+            return (
+                e.subject.toLowerCase().includes(q) ||
+                e.from_email.toLowerCase().includes(q) ||
+                e.to_email.toLowerCase().includes(q) ||
+                (e.text_body || '').toLowerCase().includes(q)
+            );
+        });
+
+    const unreadCount = emails.filter(e => e.direction === 'inbound' && !e.is_read).length;
 
     const handleSelectEmail = (email: Email) => {
         setSelectedEmail(email);
@@ -114,6 +163,20 @@ const MailboxManagement = () => {
         });
     };
 
+    const handleReply = (email: Email) => {
+        setComposeData({
+            to: email.from_email,
+            subject: email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+            message: ''
+        });
+        setIsComposing(true);
+    };
+
+    const handleRefresh = () => {
+        queryClient.invalidateQueries({ queryKey: ['emails'] });
+        toast.success('Boîte mail rafraîchie');
+    };
+
     return (
         <DashboardLayout>
             <div className="flex flex-col h-[calc(100vh-8rem)]">
@@ -129,6 +192,13 @@ const MailboxManagement = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleRefresh}
+                            title="Rafraîchir"
+                            className="flex items-center gap-2 px-3 py-3 bg-secondary text-secondary-foreground rounded-md font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity"
+                        >
+                            <RefreshCw className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={handleExportAndClean}
                             title="Exporter en CSV et supprimer les emails > 6 mois"
@@ -150,6 +220,18 @@ const MailboxManagement = () => {
                 <div className="flex flex-1 overflow-hidden gap-6">
                     {/* Sidebar */}
                     <div className="w-64 flex flex-col gap-2 shrink-0">
+                        {/* Search */}
+                        <div className="relative mb-2">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Rechercher..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary transition-colors"
+                            />
+                        </div>
+
                         <button
                             onClick={() => { setView('inbox'); setSelectedEmail(null); }}
                             className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
@@ -160,9 +242,9 @@ const MailboxManagement = () => {
                                 <Inbox className="w-5 h-5" />
                                 Boîte de réception
                             </div>
-                            {emails.filter(e => e.direction === 'inbound' && !e.is_read).length > 0 && (
+                            {unreadCount > 0 && (
                                 <span className="bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full font-bold">
-                                    {emails.filter(e => e.direction === 'inbound' && !e.is_read).length}
+                                    {unreadCount}
                                 </span>
                             )}
                         </button>
@@ -191,17 +273,26 @@ const MailboxManagement = () => {
                                     >
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
-                                    <div>
-                                        <h2 className="text-xl font-bold">{selectedEmail.subject}</h2>
+                                    <div className="flex-1 min-w-0">
+                                        <h2 className="text-xl font-bold truncate">{selectedEmail.subject}</h2>
                                         <p className="text-sm text-muted-foreground mt-1">
                                             {selectedEmail.direction === 'inbound' ? 'De: ' : 'À: '} 
                                             <span className="text-foreground">{selectedEmail.direction === 'inbound' ? selectedEmail.from_email : selectedEmail.to_email}</span>
                                         </p>
                                     </div>
-                                    <div className="ml-auto flex items-center gap-3">
+                                    <div className="flex items-center gap-2 shrink-0">
                                         <div className="text-xs text-muted-foreground hidden sm:block">
                                             {new Date(selectedEmail.created_at).toLocaleString()}
                                         </div>
+                                        {selectedEmail.direction === 'inbound' && (
+                                            <button
+                                                onClick={() => handleReply(selectedEmail)}
+                                                className="p-2 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-full transition-colors"
+                                                title="Répondre"
+                                            >
+                                                <Reply className="w-4 h-4" />
+                                            </button>
+                                        )}
                                         <button 
                                             onClick={() => {
                                                 if (confirm('Voulez-vous vraiment supprimer cet email ?')) {
@@ -219,7 +310,7 @@ const MailboxManagement = () => {
                                     {selectedEmail.html_body ? (
                                         <div 
                                             className="prose prose-invert max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: selectedEmail.html_body }} 
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedEmail.html_body) }} 
                                         />
                                     ) : (
                                         <div className="whitespace-pre-wrap font-sans text-foreground/90">
@@ -227,6 +318,18 @@ const MailboxManagement = () => {
                                         </div>
                                     )}
                                 </div>
+                                {/* Quick Reply Bar for inbound emails */}
+                                {selectedEmail.direction === 'inbound' && (
+                                    <div className="p-4 border-t border-border bg-muted/10 shrink-0">
+                                        <button
+                                            onClick={() => handleReply(selectedEmail)}
+                                            className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary/20 transition-colors"
+                                        >
+                                            <Reply className="w-4 h-4" />
+                                            Répondre à {selectedEmail.from_email.split('@')[0]}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="flex-1 overflow-y-auto">
@@ -267,7 +370,7 @@ const MailboxManagement = () => {
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                                         <Mail className="w-16 h-16 mb-4 opacity-20" />
-                                        <p>Aucun email trouvé</p>
+                                        <p>{searchQuery ? 'Aucun résultat trouvé' : 'Aucun email trouvé'}</p>
                                     </div>
                                 )}
                             </div>
@@ -294,7 +397,9 @@ const MailboxManagement = () => {
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
-                                <h2 className="font-bold text-lg">Nouveau Message</h2>
+                                <h2 className="font-bold text-lg">
+                                    {composeData.subject.startsWith('Re:') ? 'Répondre' : 'Nouveau Message'}
+                                </h2>
                                 <button onClick={() => setIsComposing(false)} className="p-2 hover:bg-muted rounded-full">
                                     <X className="w-5 h-5" />
                                 </button>
