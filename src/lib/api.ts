@@ -418,6 +418,20 @@ export async function markEmailAsRead(id: string): Promise<void> {
 }
 
 /**
+ * Mark an email as unread
+ */
+export async function markEmailAsUnread(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('emails')
+    .update({ is_read: false })
+    .eq('id', id);
+
+  if (error) {
+    console.error('markEmailAsUnread error:', error);
+  }
+}
+
+/**
  * Send an email from the admin dashboard and log it to Supabase
  */
 export async function sendAdminEmail(payload: SendEmailPayload): Promise<void> {
