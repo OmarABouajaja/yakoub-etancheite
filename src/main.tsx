@@ -15,11 +15,21 @@ const updateSW = registerSW({
 });
 
 // Global handler: if a lazy-loaded chunk fails (stale cache), force reload once
+window.addEventListener('vite:preloadError', () => {
+  const reloaded = sessionStorage.getItem('chunk-reload');
+  if (!reloaded) {
+    sessionStorage.setItem('chunk-reload', '1');
+    window.location.reload();
+  }
+});
+
 window.addEventListener('error', (event) => {
+  const msg = event.message || "";
   if (
-    event.message?.includes('Failed to fetch dynamically imported module') ||
-    event.message?.includes('Loading chunk') ||
-    event.message?.includes('Loading CSS chunk')
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Loading chunk') ||
+    msg.includes('Loading CSS chunk') ||
+    msg.includes('Strict MIME type checking is enforced')
   ) {
     const reloaded = sessionStorage.getItem('chunk-reload');
     if (!reloaded) {
@@ -27,10 +37,11 @@ window.addEventListener('error', (event) => {
       window.location.reload();
     }
   }
-});
+}, true);
 
 window.addEventListener('unhandledrejection', (event) => {
-  if (event.reason?.message?.includes('Failed to fetch dynamically imported module')) {
+  const reason = event.reason?.message || "";
+  if (reason.includes('Failed to fetch dynamically imported module') || reason.includes('Strict MIME type')) {
     const reloaded = sessionStorage.getItem('chunk-reload');
     if (!reloaded) {
       sessionStorage.setItem('chunk-reload', '1');
@@ -40,3 +51,8 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Reset reload flag on successful mount
+setTimeout(() => {
+  sessionStorage.removeItem('chunk-reload');
+}, 1000);
