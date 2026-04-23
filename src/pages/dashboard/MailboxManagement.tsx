@@ -188,7 +188,7 @@ const MailboxManagement = () => {
                             Boîte Mail
                         </h1>
                         <p className="text-muted-foreground mt-1">
-                            Gérez vos communications client via Resend
+                            team@yakoub-etancheite.com.tn
                         </p>
                     </div>
                     <div className="flex items-center gap-3">

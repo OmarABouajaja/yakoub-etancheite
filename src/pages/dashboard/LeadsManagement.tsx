@@ -40,6 +40,7 @@ const LeadsManagement: React.FC = () => {
     const [editLeadData, setEditLeadData] = useState({ client_name: '', phone: '', problem_type: '', surface_area: '', message: '' });
     const [isEditSaving, setIsEditSaving] = useState(false);
     const [newLead, setNewLead] = useState({ name: '', phone: '', problem_type: 'roof', surface_area: '', region: '', notes: '', status: 'new' });
+    const [searchQuery, setSearchQuery] = useState('');
 
     const { data: leads = [], isLoading } = useQuery({
         queryKey: ['leads'],
@@ -100,8 +101,19 @@ const LeadsManagement: React.FC = () => {
         }
     };
 
-    // Sort leads newest first
-    const sortedLeads = [...leads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // Filter and Sort leads
+    const filteredLeads = leads.filter((lead: any) => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+            (lead.client_name && lead.client_name.toLowerCase().includes(q)) ||
+            (lead.phone && lead.phone.includes(q)) ||
+            (lead.problem_type && lead.problem_type.toLowerCase().includes(q)) ||
+            (lead.message && lead.message.toLowerCase().includes(q))
+        );
+    });
+
+    const sortedLeads = [...filteredLeads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const counts = {
         new: leads.filter((l: any) => l.status === 'new' || !l.status).length,
@@ -143,12 +155,23 @@ const LeadsManagement: React.FC = () => {
                             Gérez vos leads entrants de manière intelligente et productive.
                         </p>
                     </div>
-                    <button 
-                        onClick={() => setIsAddLeadOpen(true)}
-                        className="bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 transition-all glow-button w-full md:w-auto justify-center"
-                    >
-                        + Nouveau Prospect
-                    </button>
+                    <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+                        <div className="relative w-full sm:w-64">
+                            <input
+                                type="text"
+                                placeholder="Rechercher un prospect..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full bg-background border border-border rounded-md px-4 py-2 outline-none focus:border-primary text-sm transition-colors"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => setIsAddLeadOpen(true)}
+                            className="bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 transition-all glow-button w-full sm:w-auto justify-center shrink-0"
+                        >
+                            + Nouveau Prospect
+                        </button>
+                    </div>
                 </div>
 
                 {/* KPI Counters */}
