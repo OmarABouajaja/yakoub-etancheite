@@ -19,12 +19,13 @@
  */
 export const onRequestPost = async (context: any) => {
   try {
-    const supabaseUrl = context.env.SUPABASE_URL;
+    const supabaseUrl = context.env.SUPABASE_URL || context.env.VITE_SUPABASE_URL;
     const supabaseKey = context.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase credentials missing in env');
-      return new Response('Configuration error', { status: 500 });
+      const missingUrl = !supabaseUrl ? 'SUPABASE_URL' : '';
+      const missingKey = !supabaseKey ? 'SUPABASE_SERVICE_ROLE_KEY' : '';
+      return new Response(`Configuration error: missing ${missingUrl} ${missingKey}`.trim(), { status: 500 });
     }
 
     const rawBody = await context.request.text();
