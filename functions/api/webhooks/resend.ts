@@ -172,17 +172,94 @@ export const onRequestPost = async (context: any) => {
         if (toEmails.length > 0) {
           const resendApiKey = context.env.RESEND_API_KEY;
           if (resendApiKey) {
+            const dashboardUrl = supabaseUrl.replace('https://', 'https://dashboard.').replace('.supabase.co', ''); // Approximation for button link if needed, or hardcode the production URL
+            const cleanDashboardUrl = typeof process !== 'undefined' && process.env && process.env.VITE_DASHBOARD_URL ? process.env.VITE_DASHBOARD_URL : 'https://yakoub-etancheite.com.tn';
+
             const htmlContent = `
-              <div style="font-family: sans-serif; padding: 20px; background: #f9fafb;">
-                <h2 style="color: #111827;">Nouvel Email Reçu</h2>
-                <p><strong>De:</strong> ${fromEmail}</p>
-                <p><strong>Sujet:</strong> ${subject}</p>
-                <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #e5e7eb;">
-                  ${htmlBody || textBody.replace(/\n/g, '<br/>')}
-                </div>
-                <hr style="margin-top: 30px; border-color: #e5e7eb;" />
-                <p style="font-size: 12px; color: #6b7280;">Ceci est un transfert automatique depuis la plateforme Yakoub Étanchéité.</p>
-              </div>
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvel Email Reçu | Yakoub Étanchéité</title>
+    <style>
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding: 40px 0; }
+        .main { background-color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        .header { padding: 30px; text-align: center; border-bottom: 1px solid #e2e8f0; background-color: #0f172a; }
+        .content { padding: 40px 30px; }
+        .title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 15px 0; text-align: center; }
+        .subtitle { font-size: 16px; line-height: 1.5; color: #64748b; margin: 0 0 30px 0; text-align: center; }
+        .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin-bottom: 30px; }
+        .data-row { margin-bottom: 15px; }
+        .data-row:last-child { margin-bottom: 0; }
+        .data-label { display: block; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .data-value { display: block; font-size: 16px; color: #0f172a; font-weight: 500; }
+        .data-message { display: block; font-size: 15px; color: #334155; background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 3px solid #0ea5e9; padding: 20px; margin-top: 10px; border-radius: 4px; overflow-x: auto; }
+        .button-container { text-align: center; margin-top: 35px; }
+        .button { display: inline-block; background-color: #0ea5e9; color: #ffffff !important; font-weight: 600; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-size: 16px; transition: background-color 0.2s; }
+        .footer { padding: 25px 30px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .footer-text { font-size: 13px; color: #64748b; line-height: 1.5; margin: 0; }
+        .logo-text { font-size: 24px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px; margin: 0; }
+        .cyan-text { color: #0ea5e9; }
+    </style>
+</head>
+<body>
+    <center class="wrapper">
+        <table class="main" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+                <td class="header">
+                    <h1 class="logo-text">YAKOUB<span class="cyan-text">ÉTANCHÉITÉ</span></h1>
+                </td>
+            </tr>
+            <tr>
+                <td class="content">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <span style="background-color: #f0fdf4; color: #16a34a; border: 1px solid #86efac; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">📬 Nouveau Message</span>
+                    </div>
+                    
+                    <h2 class="title">Nouvel Email Reçu</h2>
+                    <p class="subtitle">
+                        Un message vient d'arriver dans la boîte de réception de la plateforme.
+                    </p>
+                    
+                    <div class="info-box">
+                        <div class="data-row">
+                            <span class="data-label">Expéditeur</span>
+                            <span class="data-value"><a href="mailto:${fromEmail}" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">${fromEmail}</a></span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Sujet du Message</span>
+                            <span class="data-value" style="font-weight: 600;">${subject}</span>
+                        </div>
+                        <div class="data-row" style="margin-top: 25px;">
+                            <span class="data-label">Contenu du Message</span>
+                            <div class="data-message">
+                                ${htmlBody || textBody.replace(/\\n/g, '<br/>')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-container">
+                        <a href="${cleanDashboardUrl}/dashboard/mailbox" class="button">Ouvrir la Boîte Mail</a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="footer">
+                    <p class="footer-text">
+                        Cet email a été transféré automatiquement par votre plateforme.<br>
+                        © ${new Date().getFullYear()} Yakoub Étanchéité - Dashboard
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>
             `;
             
             await fetch('https://api.resend.com/emails', {
