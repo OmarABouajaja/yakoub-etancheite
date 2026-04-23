@@ -1,12 +1,10 @@
-import { useEffect, useCallback } from 'react';
-import { useBlocker } from 'react-router-dom';
+import { useEffect } from 'react';
 
 /**
  * Hook to guard against accidental navigation when a form has unsaved changes.
  * 
- * Uses both:
- * - `beforeunload` for browser-level navigation (tab close, URL bar)
- * - React Router `useBlocker` for in-app navigation
+ * Uses the browser `beforeunload` event to warn users before closing/refreshing
+ * the tab when there are unsaved changes.
  * 
  * @param isDirty - Whether the form currently has unsaved changes
  * @param message - Optional custom warning message
@@ -29,28 +27,4 @@ export const useUnsavedChanges = (
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, message]);
-
-  // React Router: in-app navigation (Link, navigate(), back button)
-  const blocker = useBlocker(
-    useCallback(
-      ({ currentLocation, nextLocation }) => {
-        return isDirty && currentLocation.pathname !== nextLocation.pathname;
-      },
-      [isDirty]
-    )
-  );
-
-  // Auto-confirm/reset when blocker triggers
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const confirmed = window.confirm(message);
-      if (confirmed) {
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker, message]);
-
-  return { blocker };
 };
