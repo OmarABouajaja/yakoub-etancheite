@@ -3,20 +3,8 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getLeads, updateLeadStatus, updateLead } from '@/lib/api';
-import { Phone, Calendar, Home, Building, Droplets, layers, Layers, AlertTriangle, GripVertical, X, DollarSign, Pencil, Check, Loader2 } from 'lucide-react';
+import { Phone, Calendar, Home, Building, Droplets, Layers, AlertTriangle, X, DollarSign, Pencil, Check, Loader2, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { 
-    DndContext, 
-    DragOverlay, 
-    closestCorners, 
-    useSensor, 
-    useSensors, 
-    PointerSensor, 
-    DragStartEvent, 
-    DragEndEvent 
-} from '@dnd-kit/core';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { format } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -44,108 +32,8 @@ const statusLabels: Record<string, string> = {
     lost: 'Perdu',
 };
 
-// Sub-components for DND Context
-const DraggableLeadCard = ({ lead, isDraggingOverlay = false, onClick }: { lead: any, isDraggingOverlay?: boolean, onClick?: () => void }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: lead.id,
-        data: { lead },
-    });
-
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        zIndex: 999,
-    } : undefined;
-
-    if (isDragging && !isDraggingOverlay) {
-        return (
-            <div ref={setNodeRef} className="glass-card p-4 h-40 opacity-30 border-dashed border-2 border-primary/50 hidden md:block" />
-        );
-    }
-
-    return (
-        <div 
-            ref={setNodeRef} 
-            style={style} 
-            onClick={onClick}
-            className={`glass-card p-4 space-y-3 cursor-grab active:cursor-grabbing bg-card transition-colors ${isDraggingOverlay ? 'shadow-2xl scale-105 rotate-2' : 'hover:border-primary/50'}`}
-        >
-            <div className="flex items-start gap-2">
-                <div {...listeners} {...attributes} className="hidden md:flex p-1 hover:bg-muted rounded text-muted-foreground cursor-grab active:cursor-grabbing">
-                    <GripVertical className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground truncate">{lead.client_name}</h3>
-                    <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-1 bg-muted/30 px-2 py-0.5 rounded-md transition-colors" dir="ltr">
-                        <Phone className="w-3 h-3" /> {lead.phone}
-                    </a>
-                </div>
-            </div>
-
-            <div className="space-y-2 pl-0 md:pl-6 pt-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {problemIcons[lead.problem_type] || <AlertTriangle className="w-3 h-3" />}
-                    <span className="capitalize">{lead.problem_type}</span>
-                    {lead.is_urgent && (
-                        <span className="flex items-center gap-1 text-[hsl(var(--orange))] font-bold ml-auto">
-                            <AlertTriangle className="w-3 h-3" /> Urgent
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(lead.created_at).toLocaleDateString()}
-                </div>
-                {lead.message && (
-                    <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2 bg-muted/20 p-2 rounded-md">
-                        "{lead.message}"
-                    </p>
-                )}
-            </div>
-            
-            {/* Mobile quick indicator */}
-            <div className="md:hidden pt-2 mt-2 border-t border-border/50 flex justify-center text-[10px] text-muted-foreground font-medium uppercase tracking-wider items-center gap-1">
-                <Pencil className="w-3 h-3" /> Appuyez pour gérer ce prospect
-            </div>
-        </div>
-    );
-};
-
-const DroppableColumn = ({ id, title, leads, onLeadClick }: { id: LeadStatus, title: string, leads: any[], onLeadClick: (lead: any) => void }) => {
-    const { setNodeRef, isOver } = useDroppable({
-        id,
-        data: { status: id }
-    });
-
-    return (
-        <div className="flex flex-col h-auto max-h-[500px] md:h-[75vh] w-full md:w-full md:max-w-none md:min-w-[280px] shrink-0 mb-6 md:mb-0">
-            <div className="flex items-center justify-between mb-3 px-1">
-                <h3 className="font-bold text-lg text-foreground uppercase tracking-wider">{statusLabels[id] || title}</h3>
-                <span className={`px-2 py-0.5 text-xs rounded-full font-bold border ${statusColors[id]}`}>
-                    {leads.length}
-                </span>
-            </div>
-            
-            <div 
-                ref={setNodeRef} 
-                className={`flex-1 p-3 rounded-xl border border-border/50 bg-black/20 overflow-y-auto space-y-3 transition-colors ${isOver ? 'bg-primary/10 border-primary/50' : ''}`}
-            >
-                {leads.map(lead => (
-                    <DraggableLeadCard key={lead.id} lead={lead} onClick={() => onLeadClick(lead)} />
-                ))}
-                
-                {leads.length === 0 && (
-                    <div className="h-24 border-2 border-dashed border-border/50 rounded-lg flex items-center justify-center text-muted-foreground text-sm">
-                        Déposez ici
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
 const LeadsManagement: React.FC = () => {
     const queryClient = useQueryClient();
-    const [activeLead, setActiveLead] = useState<any | null>(null);
     const [selectedLead, setSelectedLead] = useState<any | null>(null);
     const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
     const [isEditingLead, setIsEditingLead] = useState(false);
@@ -162,7 +50,6 @@ const LeadsManagement: React.FC = () => {
         mutationFn: ({ id, status }: { id: string; status: string }) =>
             updateLeadStatus(id, status),
         onMutate: async (variables) => {
-            // Optimistic update
             await queryClient.cancelQueries({ queryKey: ['leads'] });
             const previousLeads = queryClient.getQueryData(['leads']);
             
@@ -175,8 +62,8 @@ const LeadsManagement: React.FC = () => {
             return { previousLeads };
         },
         onError: (_err, _variables, context) => {
-            // Rollback on error
             queryClient.setQueryData(['leads'], context?.previousLeads);
+            toast.error("Erreur lors de la mise à jour du statut.");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -213,89 +100,207 @@ const LeadsManagement: React.FC = () => {
         }
     };
 
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 5, // 5px movement before drag starts
-            },
-        })
+    // Sort leads newest first
+    const sortedLeads = [...leads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const counts = {
+        new: leads.filter((l: any) => l.status === 'new' || !l.status).length,
+        contacted: leads.filter((l: any) => l.status === 'contacted').length,
+        converted: leads.filter((l: any) => l.status === 'converted').length,
+        lost: leads.filter((l: any) => l.status === 'lost').length,
+        total: leads.length
+    };
+
+    const StatusSelect = ({ lead }: { lead: any }) => (
+        <select
+            onClick={(e) => e.stopPropagation()} // Prevent opening details modal
+            value={lead.status || 'new'}
+            onChange={(e) => {
+                updateStatus.mutate({ id: lead.id, status: e.target.value });
+                if (selectedLead?.id === lead.id) {
+                    setSelectedLead({ ...selectedLead, status: e.target.value });
+                }
+            }}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold outline-none cursor-pointer appearance-none text-center min-w-[100px] border ${statusColors[lead.status || 'new']} transition-all hover:brightness-110`}
+            style={{ backgroundImage: 'none' }}
+        >
+            <option value="new">Nouveau</option>
+            <option value="contacted">Contacté</option>
+            <option value="converted">Converti</option>
+            <option value="lost">Perdu</option>
+        </select>
     );
-
-    const handleDragStart = (event: DragStartEvent) => {
-        const { active } = event;
-        setActiveLead(active.data.current?.lead);
-    };
-
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-        setActiveLead(null);
-
-        if (over && over.id) {
-            const newStatus = over.id as LeadStatus;
-            const leadId = active.id as string;
-            const currentStatus = active.data.current?.lead.status;
-
-            if (newStatus !== currentStatus) {
-                updateStatus.mutate({ id: leadId, status: newStatus });
-            }
-        }
-    };
-
-    // Group leads by status
-    const groupedLeads = {
-        new: leads.filter((l: any) => l.status === 'new' || !l.status),
-        contacted: leads.filter((l: any) => l.status === 'contacted'),
-        converted: leads.filter((l: any) => l.status === 'converted'),
-        lost: leads.filter((l: any) => l.status === 'lost'),
-    };
 
     return (
         <DashboardLayout>
             <div className="space-y-6 h-full flex flex-col">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold font-display tracking-wider text-foreground">
                             Tableau des Prospects
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm">
-                            Glissez-déposez les prospects pour mettre à jour leur statut.
+                            Gérez vos leads entrants de manière intelligente et productive.
                         </p>
                     </div>
                     <button 
                         onClick={() => setIsAddLeadOpen(true)}
-                        className="bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 transition-all glow-button"
+                        className="bg-[hsl(var(--orange))] hover:bg-[hsl(var(--orange)/0.8)] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 transition-all glow-button w-full md:w-auto justify-center"
                     >
                         + Nouveau Prospect
                     </button>
                 </div>
 
-                {isLoading ? (
-                    <div className="flex gap-4 overflow-x-auto pb-4">
-                        {[1, 2, 3, 4].map(col => (
-                            <div key={col} className="w-[300px] h-[60vh] bg-muted/20 animate-pulse rounded-xl" />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden md:overflow-x-auto pb-4 custom-scrollbar">
-                        <DndContext 
-                            sensors={sensors}
-                            collisionDetection={closestCorners}
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                        >
-                            <div className="flex flex-col md:flex-row gap-6 w-full px-1">
-                                <DroppableColumn id="new" title="Nouveau" leads={groupedLeads.new} onLeadClick={setSelectedLead} />
-                                <DroppableColumn id="contacted" title="Contacté" leads={groupedLeads.contacted} onLeadClick={setSelectedLead} />
-                                <DroppableColumn id="converted" title="Converti" leads={groupedLeads.converted} onLeadClick={setSelectedLead} />
-                                <DroppableColumn id="lost" title="Perdu" leads={groupedLeads.lost} onLeadClick={setSelectedLead} />
-                            </div>
+                {/* KPI Counters */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { id: 'new', label: 'Nouveaux', count: counts.new, color: 'text-[hsl(var(--orange))]', bg: 'bg-[hsl(var(--orange)/0.1)] border-[hsl(var(--orange)/0.2)]' },
+                        { id: 'contacted', label: 'Contactés', count: counts.contacted, color: 'text-[hsl(var(--teal))]', bg: 'bg-[hsl(var(--teal)/0.1)] border-[hsl(var(--teal)/0.2)]' },
+                        { id: 'converted', label: 'Convertis', count: counts.converted, color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/20' },
+                        { id: 'lost', label: 'Perdus', count: counts.lost, color: 'text-muted-foreground', bg: 'bg-muted/10 border-border' },
+                    ].map(stat => (
+                        <div key={stat.id} className={`p-4 rounded-xl border ${stat.bg} flex flex-col justify-between`}>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{stat.label}</span>
+                            <span className={`text-3xl font-display font-black mt-2 ${stat.color}`}>{stat.count}</span>
+                        </div>
+                    ))}
+                </div>
 
-                            <DragOverlay>
-                                {activeLead ? <DraggableLeadCard lead={activeLead} isDraggingOverlay /> : null}
-                            </DragOverlay>
-                        </DndContext>
-                    </div>
-                )}
+                {/* Table / List Container */}
+                <div className="flex-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col">
+                    {isLoading ? (
+                        <div className="p-8 flex justify-center items-center h-40">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                    ) : sortedLeads.length === 0 ? (
+                        <div className="p-12 flex flex-col items-center justify-center text-center h-full">
+                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                                <AlertTriangle className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground mb-1">Aucun prospect</h3>
+                            <p className="text-muted-foreground text-sm max-w-md">
+                                Vous n'avez pas encore de prospect. Ajoutez-en un manuellement ou attendez qu'un client remplisse le formulaire.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="flex-1 overflow-auto custom-scrollbar">
+                            {/* Desktop Table (Hidden on Mobile) */}
+                            <table className="w-full hidden md:table text-left border-collapse">
+                                <thead className="bg-muted/30 sticky top-0 z-10 backdrop-blur-md border-b border-border">
+                                    <tr>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Client & Contact</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Projet</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/4">Message</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/50">
+                                    {sortedLeads.map((lead) => (
+                                        <tr 
+                                            key={lead.id} 
+                                            onClick={() => setSelectedLead(lead)}
+                                            className="hover:bg-muted/20 transition-colors cursor-pointer group"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                                                {new Date(lead.created_at).toLocaleDateString()}
+                                                <div className="text-[10px] mt-0.5 opacity-70">
+                                                    {new Date(lead.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-foreground">{lead.client_name}</div>
+                                                <a 
+                                                    href={`tel:${lead.phone}`} 
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mt-1" 
+                                                    dir="ltr"
+                                                >
+                                                    <Phone className="w-3 h-3" /> {lead.phone}
+                                                </a>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-2 text-sm text-foreground">
+                                                    <span className="p-1.5 bg-muted rounded-md text-muted-foreground">
+                                                        {problemIcons[lead.problem_type] || <AlertTriangle className="w-3 h-3" />}
+                                                    </span>
+                                                    <span className="capitalize">{lead.problem_type}</span>
+                                                    {lead.is_urgent && (
+                                                        <span className="flex items-center gap-1 text-[hsl(var(--orange))] font-bold text-[10px] uppercase ml-2 px-1.5 py-0.5 bg-[hsl(var(--orange)/0.1)] rounded">
+                                                            Urgent
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm text-muted-foreground line-clamp-2 max-w-xs" title={lead.message}>
+                                                    {lead.message || <span className="italic opacity-50">Aucun message</span>}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <StatusSelect lead={lead} />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                <button className="p-2 rounded-full hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors">
+                                                    <ChevronRight className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {/* Mobile List (Hidden on Desktop) */}
+                            <div className="md:hidden flex flex-col divide-y divide-border/50">
+                                {sortedLeads.map((lead) => (
+                                    <div 
+                                        key={lead.id} 
+                                        onClick={() => setSelectedLead(lead)}
+                                        className="p-4 flex flex-col gap-3 active:bg-muted/20 transition-colors cursor-pointer"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-bold text-foreground text-base leading-tight">{lead.client_name}</h3>
+                                                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {new Date(lead.created_at).toLocaleDateString()} à {new Date(lead.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                </p>
+                                            </div>
+                                            <StatusSelect lead={lead} />
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            <a 
+                                                href={`tel:${lead.phone}`} 
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="inline-flex items-center gap-1.5 text-xs bg-muted/50 px-2 py-1 rounded-md text-foreground hover:text-primary" 
+                                                dir="ltr"
+                                            >
+                                                <Phone className="w-3 h-3" /> {lead.phone}
+                                            </a>
+                                            <span className="inline-flex items-center gap-1.5 text-xs bg-muted/50 px-2 py-1 rounded-md text-foreground capitalize">
+                                                {problemIcons[lead.problem_type] || <AlertTriangle className="w-3 h-3" />}
+                                                {lead.problem_type}
+                                            </span>
+                                            {lead.is_urgent && (
+                                                <span className="inline-flex items-center gap-1 text-[hsl(var(--orange))] font-bold text-[10px] uppercase px-1.5 py-1 bg-[hsl(var(--orange)/0.1)] rounded-md">
+                                                    Urgent
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {lead.message && (
+                                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 bg-muted/20 p-2 rounded-md">
+                                                {lead.message}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Lead Details Sidebar */}
@@ -619,18 +624,18 @@ const LeadsManagement: React.FC = () => {
             
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
+                    width: 8px;
                     height: 8px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
+                    background: rgba(255, 255, 255, 0.02);
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.1);
                     border-radius: 4px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.3);
+                    background: rgba(255, 255, 255, 0.2);
                 }
             `}</style>
         </DashboardLayout>
