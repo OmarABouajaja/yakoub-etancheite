@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/lib/supabase';
-import { Save, Loader2, Phone, Mail, MapPin, Share2, BarChart2, Bell } from 'lucide-react';
+import { Save, Loader2, Phone, Mail, MapPin, Share2, BarChart2, Bell, Forward, Send, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
@@ -19,6 +19,11 @@ interface SiteSettings {
   stat_guarantee: string;
   stat_satisfaction: string;
   enable_email_notifications?: boolean;
+  notification_email?: string;
+  enable_lead_forwarding?: boolean;
+  forward_leads_email?: string;
+  enable_daily_digest?: boolean;
+  daily_digest_email?: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -34,6 +39,11 @@ const DEFAULT_SETTINGS: SiteSettings = {
   stat_guarantee: '10',
   stat_satisfaction: '98%',
   enable_email_notifications: true,
+  notification_email: '',
+  enable_lead_forwarding: false,
+  forward_leads_email: '',
+  enable_daily_digest: false,
+  daily_digest_email: '',
 };
 
 const SettingsManagement = () => {
@@ -294,22 +304,114 @@ const SettingsManagement = () => {
                             </div>
                         </div>
 
-                        {/* Section 4: Notifications */}
+                        {/* Section 4: Notifications & Forwarding */}
                         <div>
                             <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
                                 <Bell className="w-5 h-5 text-green-500" />
-                                <h3 className="font-bold text-lg font-display tracking-wider text-foreground">Notifications Système</h3>
+                                <h3 className="font-bold text-lg font-display tracking-wider text-foreground">Notifications & Transfert</h3>
                             </div>
+                            <p className="text-xs text-muted-foreground mb-5">Configurez les alertes automatiques et le transfert des demandes clients.</p>
                             
-                            <div className="flex items-center justify-between p-6 bg-background border border-border rounded-lg">
-                                <div className="space-y-1">
-                                    <h4 className="font-bold text-foreground">Alertes Nouveau Prospect</h4>
-                                    <p className="text-sm text-muted-foreground">Recevoir un email détaillé lorsqu'un client soumet une demande de devis.</p>
+                            <div className="space-y-4">
+                                {/* Card 1: Lead Notifications */}
+                                <div className={`p-5 rounded-xl border transition-all ${settings?.enable_email_notifications !== false ? 'bg-green-500/5 border-green-500/20' : 'bg-background border-border'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${settings?.enable_email_notifications !== false ? 'bg-green-500/10' : 'bg-muted'}`}>
+                                                <Bell className={`w-4 h-4 ${settings?.enable_email_notifications !== false ? 'text-green-500' : 'text-muted-foreground'}`} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-foreground text-sm">Alertes Nouveau Prospect</h4>
+                                                <p className="text-xs text-muted-foreground">Recevoir un email lorsqu'un client soumet une demande de devis.</p>
+                                            </div>
+                                        </div>
+                                        <Switch 
+                                            checked={settings?.enable_email_notifications !== false}
+                                            onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_email_notifications: checked}))}
+                                        />
+                                    </div>
+                                    {settings?.enable_email_notifications !== false && (
+                                        <div className="ml-11 mt-3 space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Envoyer les alertes à</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full bg-background border border-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-green-500/30 focus:border-green-500/50 outline-none text-sm transition-all"
+                                                value={settings?.notification_email || ''}
+                                                onChange={(e) => handleChange(prev => ({...prev, notification_email: e.target.value}))}
+                                                placeholder="admin@yakoub-etancheite.com.tn (vide = email principal)"
+                                            />
+                                            <p className="text-[11px] text-muted-foreground">Laissez vide pour utiliser l'email de support ci-dessus.</p>
+                                        </div>
+                                    )}
                                 </div>
-                                <Switch 
-                                    checked={settings?.enable_email_notifications !== false}
-                                    onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_email_notifications: checked}))}
-                                />
+
+                                {/* Card 2: Lead Forwarding */}
+                                <div className={`p-5 rounded-xl border transition-all ${settings?.enable_lead_forwarding ? 'bg-blue-500/5 border-blue-500/20' : 'bg-background border-border'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${settings?.enable_lead_forwarding ? 'bg-blue-500/10' : 'bg-muted'}`}>
+                                                <Forward className={`w-4 h-4 ${settings?.enable_lead_forwarding ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-foreground text-sm">Transfert Automatique des Prospects</h4>
+                                                <p className="text-xs text-muted-foreground">Transférer chaque nouveau prospect vers un email externe (ex: associé, commercial).</p>
+                                            </div>
+                                        </div>
+                                        <Switch 
+                                            checked={settings?.enable_lead_forwarding || false}
+                                            onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_lead_forwarding: checked}))}
+                                        />
+                                    </div>
+                                    {settings?.enable_lead_forwarding && (
+                                        <div className="ml-11 mt-3 space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email de transfert</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full bg-background border border-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 outline-none text-sm transition-all"
+                                                value={settings?.forward_leads_email || ''}
+                                                onChange={(e) => handleChange(prev => ({...prev, forward_leads_email: e.target.value}))}
+                                                placeholder="commercial@example.com"
+                                                required
+                                            />
+                                            <div className="flex items-center gap-2 text-[11px] text-blue-400 mt-1">
+                                                <ArrowRight className="w-3 h-3" />
+                                                <span>Chaque nouveau prospect sera automatiquement copié à cette adresse.</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Card 3: Daily Digest */}
+                                <div className={`p-5 rounded-xl border transition-all ${settings?.enable_daily_digest ? 'bg-purple-500/5 border-purple-500/20' : 'bg-background border-border'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${settings?.enable_daily_digest ? 'bg-purple-500/10' : 'bg-muted'}`}>
+                                                <Send className={`w-4 h-4 ${settings?.enable_daily_digest ? 'text-purple-500' : 'text-muted-foreground'}`} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-foreground text-sm">Résumé Quotidien</h4>
+                                                <p className="text-xs text-muted-foreground">Recevoir un récapitulatif quotidien de l'activité (nouveaux prospects, emails reçus).</p>
+                                            </div>
+                                        </div>
+                                        <Switch 
+                                            checked={settings?.enable_daily_digest || false}
+                                            onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_daily_digest: checked}))}
+                                        />
+                                    </div>
+                                    {settings?.enable_daily_digest && (
+                                        <div className="ml-11 mt-3 space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Envoyer le résumé à</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full bg-background border border-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/50 outline-none text-sm transition-all"
+                                                value={settings?.daily_digest_email || ''}
+                                                onChange={(e) => handleChange(prev => ({...prev, daily_digest_email: e.target.value}))}
+                                                placeholder="directeur@example.com (vide = email principal)"
+                                            />
+                                            <p className="text-[11px] text-muted-foreground">Le récapitulatif est envoyé chaque matin à 08h00.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

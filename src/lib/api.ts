@@ -116,14 +116,22 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
 
   // Attempt to send email notification
   try {
-    const { data: settings } = await supabase.from('site_settings').select('email, enable_email_notifications').single();
+    const { data: settings } = await supabase.from('site_settings').select('email, enable_email_notifications, notification_email, enable_lead_forwarding, forward_leads_email').single();
     
     // Default to true if not explicitly set to false
     if (settings?.enable_email_notifications !== false) {
       const dashboardUrl = typeof window !== 'undefined' ? window.location.origin : 'https://yakoub-etancheite.com.tn';
       const emailHtml = getLeadNotificationHtml(data, dashboardUrl);
       
-      const toEmail = settings?.email || 'team@yakoub-etancheite.com.tn';
+      const toEmails = [];
+      // Use custom notification email if set, otherwise fallback to general email, then default.
+      const primaryEmail = settings?.notification_email || settings?.email || 'team@yakoub-etancheite.com.tn';
+      toEmails.push(primaryEmail);
+
+      // Add forwarding email if enabled
+      if (settings?.enable_lead_forwarding && settings?.forward_leads_email) {
+          toEmails.push(settings.forward_leads_email);
+      }
 
       await fetch('/api/send-email', {
         method: 'POST',
@@ -131,7 +139,7 @@ export async function submitLead(data: LeadData): Promise<LeadResponse> {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          to: toEmail,
+          to: toEmails,
           subject: `${data.is_urgent ? '⚡ URGENT' : '📋 Nouveau'} Prospect: ${data.client_name} — ${data.problem_type}`,
           html: emailHtml
         })

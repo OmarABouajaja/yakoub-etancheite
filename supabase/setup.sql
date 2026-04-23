@@ -157,9 +157,24 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     stat_experience   TEXT DEFAULT '15',
     stat_guarantee    TEXT DEFAULT '10',
     stat_satisfaction TEXT DEFAULT '98%',
+    -- Notification settings
+    enable_email_notifications BOOLEAN DEFAULT true,
+    notification_email TEXT DEFAULT '',
+    enable_lead_forwarding BOOLEAN DEFAULT false,
+    forward_leads_email TEXT DEFAULT '',
+    enable_daily_digest BOOLEAN DEFAULT false,
+    daily_digest_email TEXT DEFAULT '',
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Idempotent: add notification columns if they don't exist (for existing deployments)
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_email_notifications BOOLEAN DEFAULT true;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS notification_email TEXT DEFAULT '';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_lead_forwarding BOOLEAN DEFAULT false;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS forward_leads_email TEXT DEFAULT '';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS enable_daily_digest BOOLEAN DEFAULT false;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS daily_digest_email TEXT DEFAULT '';
 
 DROP TRIGGER IF EXISTS set_site_settings_updated_at ON public.site_settings;
 CREATE TRIGGER set_site_settings_updated_at
