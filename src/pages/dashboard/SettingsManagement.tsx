@@ -65,8 +65,10 @@ const SettingsManagement = () => {
                     if (error.code === '42P01') {
                          console.warn("La table site_settings n'existe pas. Utilisation de localStorage.");
                          const localSettings = localStorage.getItem('site_settings');
-                         if (localSettings) {
+                         if (localSettings && localSettings !== 'null') {
                              setSettings(JSON.parse(localSettings));
+                         } else {
+                             setSettings(DEFAULT_SETTINGS);
                          }
                     } else if (error.code === 'PGRST116') {
                         // Empty table, insert defaults
@@ -76,13 +78,17 @@ const SettingsManagement = () => {
                         throw error;
                     }
                 } else if (data) {
-                    setSettings(data as SiteSettings);
-                    savedSettings.current = JSON.stringify(data);
+                    setSettings(data as SiteSettings || DEFAULT_SETTINGS);
+                    savedSettings.current = JSON.stringify(data || DEFAULT_SETTINGS);
                 }
             } catch (err) {
                 console.error("Error fetching settings:", err);
                 const localSettings = localStorage.getItem('site_settings');
-                 if (localSettings) setSettings(JSON.parse(localSettings));
+                 if (localSettings && localSettings !== 'null') {
+                     setSettings(JSON.parse(localSettings));
+                 } else {
+                     setSettings(DEFAULT_SETTINGS);
+                 }
             } finally {
                 setIsLoading(false);
             }
@@ -152,7 +158,7 @@ const SettingsManagement = () => {
                                     <input 
                                         type="tel" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
-                                        value={settings.phone_primary}
+                                        value={settings?.phone_primary || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, phone_primary: e.target.value}))}
                                         dir="ltr"
                                     />
@@ -163,7 +169,7 @@ const SettingsManagement = () => {
                                     <input 
                                         type="email" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
-                                        value={settings.email}
+                                        value={settings?.email || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, email: e.target.value}))}
                                     />
                                 </div>
@@ -172,7 +178,7 @@ const SettingsManagement = () => {
                                     <input 
                                         type="text" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
-                                        value={settings.address}
+                                        value={settings?.address || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, address: e.target.value}))}
                                     />
                                 </div>
@@ -192,7 +198,7 @@ const SettingsManagement = () => {
                                     <input 
                                         type="text" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
-                                        value={settings.whatsapp_number}
+                                        value={settings?.whatsapp_number || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, whatsapp_number: e.target.value}))}
                                         dir="ltr"
                                         placeholder="e.g. 216XXXXXXXX"
@@ -204,7 +210,7 @@ const SettingsManagement = () => {
                                     <input 
                                         type="url" 
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-[hsl(var(--orange))] outline-none"
-                                        value={settings.instagram_url}
+                                        value={settings?.instagram_url || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, instagram_url: e.target.value}))}
                                         dir="ltr"
                                     />
@@ -246,7 +252,7 @@ const SettingsManagement = () => {
                                     <input
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                                        value={settings.stat_projects}
+                                        value={settings?.stat_projects || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, stat_projects: e.target.value}))}
                                         placeholder="500+"
                                     />
@@ -257,7 +263,7 @@ const SettingsManagement = () => {
                                     <input
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                                        value={settings.stat_experience}
+                                        value={settings?.stat_experience || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, stat_experience: e.target.value}))}
                                         placeholder="15"
                                     />
@@ -268,7 +274,7 @@ const SettingsManagement = () => {
                                     <input
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                                        value={settings.stat_guarantee}
+                                        value={settings?.stat_guarantee || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, stat_guarantee: e.target.value}))}
                                         placeholder="10"
                                     />
@@ -279,7 +285,7 @@ const SettingsManagement = () => {
                                     <input
                                         type="text"
                                         className="w-full bg-background border border-border rounded-md px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                                        value={settings.stat_satisfaction}
+                                        value={settings?.stat_satisfaction || ''}
                                         onChange={(e) => handleChange(prev => ({...prev, stat_satisfaction: e.target.value}))}
                                         placeholder="98%"
                                     />
@@ -301,7 +307,7 @@ const SettingsManagement = () => {
                                     <p className="text-sm text-muted-foreground">Recevoir un email détaillé lorsqu'un client soumet une demande de devis.</p>
                                 </div>
                                 <Switch 
-                                    checked={settings.enable_email_notifications !== false}
+                                    checked={settings?.enable_email_notifications !== false}
                                     onCheckedChange={(checked) => handleChange(prev => ({...prev, enable_email_notifications: checked}))}
                                 />
                             </div>
