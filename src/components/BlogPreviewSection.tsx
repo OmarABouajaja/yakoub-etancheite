@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, BookOpen, Calendar } from 'lucide-react';
+import { ArrowRight, ArrowLeft, BookOpen, Calendar, Tag } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Link } from 'react-router-dom';
 
@@ -129,6 +129,13 @@ const BlogPreviewSection: React.FC = () => {
                             <BookOpen className="w-12 h-12 text-muted-foreground/30" />
                           </div>
                         )}
+                        {/* Type badge */}
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-background/80 backdrop-blur-sm border border-primary/30 rounded-sm text-foreground">
+                            <Tag className="w-2.5 h-2.5 text-[hsl(var(--cyan-bright))]" />
+                            {isAr ? 'مقال' : 'Article'}
+                          </span>
+                        </div>
                         {/* Overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>

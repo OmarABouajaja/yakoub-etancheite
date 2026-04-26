@@ -5,7 +5,7 @@ import SEO from '@/components/SEO';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getBlogs } from '@/lib/blog-api';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -81,6 +81,13 @@ const BlogList = () => {
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
                     )}
+                    {/* Type badge */}
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-background/80 backdrop-blur-sm border border-primary/30 rounded-sm text-foreground">
+                        <Tag className="w-2.5 h-2.5 text-[hsl(var(--cyan-bright))]" />
+                        {isAr ? 'مقال' : 'Article'}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="p-6 flex flex-col flex-grow">

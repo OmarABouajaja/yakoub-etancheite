@@ -57,18 +57,18 @@ const PartnersSection: React.FC = () => {
         <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
         {/* Scrolling container — CSS driven marquee */}
-        <div className="flex w-max animate-marquee hover:![animation-play-state:paused]" style={{ willChange: 'transform', direction: 'ltr' }}>
+        <div className="flex w-max animate-marquee hover:![animation-play-state:paused]" style={{ willChange: 'transform', direction: 'ltr', gap: '0' }}>
           {[...Array(10)].map((_, arrayIdx) => (
             <div key={`set-${arrayIdx}`} className="flex items-center">
               {partners.map((partner) => (
                 <div
                   key={`${arrayIdx}-${partner.id}`}
-                  className="flex items-center justify-center shrink-0 mx-8 md:mx-14"
+                  className="flex items-center justify-center shrink-0 mx-6 sm:mx-10 md:mx-14"
                 >
                   <img
                     src={partner.logo_url}
                     alt={partner.name}
-                    className="h-12 md:h-16 w-auto object-contain brightness-90 hover:brightness-110 transition-all duration-300"
+                    className="h-16 sm:h-20 md:h-24 w-auto object-contain brightness-90 hover:brightness-110 transition-all duration-300"
                     loading="lazy"
                     draggable={false}
                   />

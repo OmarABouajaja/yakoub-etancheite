@@ -4,10 +4,24 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import BeforeAfter from './BeforeAfter';
 import { getProjectsByLang } from '@/lib/api';
-import { Zap, Loader2 } from 'lucide-react';
+import { Zap, Loader2, Layers } from 'lucide-react';
 
 // Fallback data for when API is unavailable
 import { FolderOpen } from 'lucide-react';
+
+const CATEGORY_LABELS: Record<string, string> = {
+  roof: 'Toiture',
+  wall: 'Mur',
+  pool: 'Piscine',
+  basement: 'Sous-sol',
+};
+
+const CATEGORY_LABELS_AR: Record<string, string> = {
+  roof: 'سطح',
+  wall: 'جدار',
+  pool: 'مسبح',
+  basement: 'قبو',
+};
 
 const PortfolioSection: React.FC = () => {
   const { t, language, isRTL } = useLanguage();
@@ -104,8 +118,16 @@ const PortfolioSection: React.FC = () => {
                     <h4 className="mt-4 text-foreground font-marker text-lg line-clamp-1">{project.title}</h4>
                   </div>
                 )}
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="tag-style text-[10px]">{project.location_gov}</span>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {project.category && (
+                    <span className="inline-flex items-center gap-1 tag-style text-[10px]">
+                      <Layers className="w-2.5 h-2.5" />
+                      {isRTL ? (CATEGORY_LABELS_AR[project.category] || project.category) : (CATEGORY_LABELS[project.category] || project.category)}
+                    </span>
+                  )}
+                  {project.location_gov && (
+                    <span className="tag-style text-[10px]">{project.location_gov}</span>
+                  )}
                 </div>
               </motion.div>
             ))}
