@@ -37,7 +37,18 @@ const PageLoader = () => (
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 30 * 1000,           // 30 seconds — avoid hammering Supabase
+      refetchOnWindowFocus: false,     // Prevent unexpected refetches
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <HelmetProvider>

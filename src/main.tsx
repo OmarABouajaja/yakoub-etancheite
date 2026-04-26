@@ -25,6 +25,13 @@ window.addEventListener('vite:preloadError', () => {
 
 window.addEventListener('error', (event) => {
   const msg = event.message || "";
+
+  // Suppress Supabase v2 internal AbortController errors (harmless)
+  if (msg.includes('signal is aborted') || msg.includes('AbortError')) {
+    event.preventDefault();
+    return;
+  }
+
   if (
     msg.includes('Failed to fetch dynamically imported module') ||
     msg.includes('Loading chunk') ||
@@ -41,6 +48,14 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason?.message || "";
+  const name = event.reason?.name || "";
+
+  // Suppress Supabase v2 internal AbortController errors (harmless)
+  if (name === 'AbortError' || reason.includes('signal is aborted')) {
+    event.preventDefault();
+    return;
+  }
+
   if (reason.includes('Failed to fetch dynamically imported module') || reason.includes('Strict MIME type')) {
     const reloaded = sessionStorage.getItem('chunk-reload');
     if (!reloaded) {

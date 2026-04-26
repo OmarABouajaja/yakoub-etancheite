@@ -34,7 +34,7 @@ const statusLabels: Record<string, string> = {
 
 const LeadsManagement: React.FC = () => {
     const queryClient = useQueryClient();
-    const [selectedLead, setSelectedLead] = useState<any | null>(null);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
     const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
     const [isEditingLead, setIsEditingLead] = useState(false);
     const [editLeadData, setEditLeadData] = useState({ client_name: '', phone: '', problem_type: '', surface_area: '', message: '' });
@@ -528,7 +528,7 @@ const LeadsManagement: React.FC = () => {
                                     value={selectedLead.status || 'new'}
                                     onChange={(e) => {
                                         updateStatus.mutate({ id: selectedLead.id, status: e.target.value });
-                                        setSelectedLead(prev => ({...prev, status: e.target.value}));
+                                        setSelectedLead({...selectedLead, status: e.target.value});
                                     }}
                                 >
                                     <option value="new">Nouveau Prospect</option>

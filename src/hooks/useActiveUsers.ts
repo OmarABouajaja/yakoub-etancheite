@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
@@ -19,10 +19,12 @@ export const useActiveUsers = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const displayNameRef = useRef<string>('');
 
   useEffect(() => {
     if (!user?.email) return;
+    let isMounted = true;
 
     // Fetch the user's display name from team_members
     const setupPresence = async () => {
@@ -43,6 +45,9 @@ export const useActiveUsers = () => {
         // Fallback to email
       }
 
+      if (!isMounted) return;
+      displayNameRef.current = displayName;
+
       const ch = supabase.channel('online-users', {
         config: {
           presence: {
@@ -52,6 +57,7 @@ export const useActiveUsers = () => {
       });
 
       ch.on('presence', { event: 'sync' }, () => {
+        if (!isMounted) return;
         const state = ch.presenceState<ActiveUser>();
         const users: ActiveUser[] = [];
         
@@ -66,7 +72,7 @@ export const useActiveUsers = () => {
       });
 
       ch.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
+        if (status === 'SUBSCRIBED' && isMounted) {
           await ch.track({
             email: user.email!,
             name: displayName,
@@ -76,39 +82,31 @@ export const useActiveUsers = () => {
         }
       });
 
-      setChannel(ch);
+      channelRef.current = ch;
     };
 
     setupPresence();
 
     return () => {
-      if (channel) {
-        channel.untrack();
-        supabase.removeChannel(channel);
+      isMounted = false;
+      if (channelRef.current) {
+        channelRef.current.untrack();
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email]);
 
-  // Update presence when page changes
+  // Update presence when page changes (reuses cached display name)
   useEffect(() => {
-    if (!channel || !user?.email) return;
+    if (!channelRef.current || !user?.email) return;
 
     const updatePage = async () => {
       try {
-        // Fetch name again in case it was updated
-        let displayName = user.email || 'Utilisateur';
-        const { data } = await supabase
-          .from('team_members')
-          .select('name')
-          .eq('email', user.email!)
-          .limit(1)
-          .maybeSingle();
-        if (data?.name) displayName = data.name;
-
-        await channel.track({
+        await channelRef.current?.track({
           email: user.email!,
-          name: displayName,
+          name: displayNameRef.current || user.email!,
           page: location.pathname,
           lastSeen: new Date().toISOString(),
         });

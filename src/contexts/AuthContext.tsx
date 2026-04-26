@@ -51,15 +51,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
+        let isMounted = true;
+
         // ✅ Resolve loading immediately after session check — never block UI on role
         supabase.auth.getSession()
             .then(({ data: { session } }) => {
+                if (!isMounted) return;
                 setSession(session);
                 setUser(session?.user ?? null);
                 setLoading(false); // Unblock rendering immediately
                 fetchRole(session?.user?.email); // Role loads in background
             })
-            .catch(() => {
+            .catch((err) => {
+                // Supabase v2 internally uses AbortController — suppress harmless abort errors
+                if (err?.name === 'AbortError' || err?.message?.includes('signal is aborted')) return;
+                if (!isMounted) return;
                 setLoading(false); // Even on error, unblock UI
             });
 
@@ -67,13 +73,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
                 if (event === 'INITIAL_SESSION') return;
+                if (!isMounted) return;
                 setSession(session);
                 setUser(session?.user ?? null);
                 fetchRole(session?.user?.email); // Background — no loading state
             }
         );
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {

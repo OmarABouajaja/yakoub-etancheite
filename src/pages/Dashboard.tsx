@@ -1,7 +1,7 @@
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
-import { Users, FolderOpen, TrendingUp, Clock, ArrowRight, DollarSign, Activity, PenLine, Trash2, UserPlus, Eye, Send, Mail } from 'lucide-react';
+import { Users, FolderOpen, Clock, ArrowRight, DollarSign, Activity, PenLine, Trash2, UserPlus, Eye, Send, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';

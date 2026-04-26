@@ -41,9 +41,19 @@ export const getBlogBySlug = async (slug: string): Promise<Blog | null> => {
 
 export const createBlog = async (blog: Partial<Blog>): Promise<void> => {
   try {
+    // Normalize diacritics (é→e, è→e, à→a, etc.) then slugify
+    const baseSlug = (blog.title || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    // Append short timestamp to prevent duplicate slug collisions
+    const slug = `${baseSlug}-${Date.now().toString(36).slice(-4)}`;
+
     const { error } = await supabase.from('blogs').insert([{
       ...blog,
-      slug: blog.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+      slug,
     }]);
     if (error) throw error;
   } catch (err) {
@@ -56,7 +66,13 @@ export const updateBlog = async (id: string, updates: Partial<Blog>): Promise<vo
   try {
     // Automatically update slug if title changes
     if (updates.title) {
-      updates.slug = updates.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      const baseSlug = updates.title
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      updates.slug = `${baseSlug}-${Date.now().toString(36).slice(-4)}`;
     }
     const { error } = await supabase.from('blogs').update(updates).eq('id', id);
     if (error) throw error;
